@@ -1,18 +1,20 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { NextPage } from 'next';
 import React, { useEffect, useState } from 'react';
-import { Board } from '../components/Board';
+import { MemoBoard as Board } from '../components/Board';
 import { Puyo } from '../components/Puyo';
 import { Queue } from '../components/Queue';
 import { useKeyPress } from '../hooks/use-key-press';
 import { PuyoColour, useStore } from '../store/store';
 import styles from '../styles/Home.module.css';
 
+const tickSpeed = 500;
+
 const Home: NextPage = () => {
   const cellSize = useStore((store) => store.cellSize);
   const grid = useStore((store) => store.grid);
   const rows = useStore((store) => store.rows);
-  const puyos = useStore((store) => store.puyos);
+  // const puyos = useStore((store) => store.puyos);
   const gameState = useStore((store) => store.gameState);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
   const movePuyo = useStore((store) => store.movePuyo);
@@ -43,7 +45,7 @@ const Home: NextPage = () => {
     if (gameState === 'drop-puyo') {
       interval = window.setInterval(() => {
         movePuyo('down');
-      }, 1000);
+      }, tickSpeed);
     } else if (gameState === 'paused') {
       window.clearInterval(interval);
     } else if (gameState === 'landed') {
@@ -51,15 +53,15 @@ const Home: NextPage = () => {
 
       window.setTimeout(() => {
         collapsePuyos();
-      }, 1000);
+      }, tickSpeed);
     } else if (gameState === 'collapse-puyos') {
-      collapsePuyos();
-      // window.setTimeout(() => {
-      // }, 1000);
+      window.setTimeout(() => {
+        collapsePuyos();
+      }, tickSpeed);
     } else if (gameState === 'clear-puyos') {
       window.setTimeout(() => {
         clearPuyos();
-      }, 1000);
+      }, tickSpeed);
     } else if (gameState === 'add-puyos') {
       addPuyoToGrid();
     }
@@ -76,61 +78,12 @@ const Home: NextPage = () => {
     return [...prev, ...curr];
   }, []);
 
-  console.log(gridTest);
+  // console.log(gridTest);
 
   return (
     <div className={styles.container}>
       <div className="flex">
-        <Board>
-          <AnimatePresence>
-            {/* {gameState === 'add-puyos' && (
-              <Puyo id="test" colour={PuyoColour.BLUE}></Puyo>
-            )}
-            {gameState === 'drop-puyo' && (
-              <Puyo id="test" colour={PuyoColour.GREEN}></Puyo>
-            )} */}
-
-            {gridTest.map((id, index) => {
-              if (id) {
-                const puyo = puyos[id];
-                const column = index % 6;
-                const row = Math.floor(index / 6);
-
-                return (
-                  <Puyo
-                    id={id}
-                    colour={puyo.colour}
-                    x={column * cellSize}
-                    y={row * cellSize}
-                    key={id}
-                  />
-                );
-              }
-
-              return null;
-            })}
-
-            {/* {grid.map((columns, row) => {
-              return columns.map((id, column) => {
-                if (id) {
-                  const puyo = puyos[id];
-
-                  return (
-                    <Puyo
-                      id={id}
-                      colour={puyo.colour}
-                      x={column * cellSize}
-                      y={row * cellSize}
-                      key={id}
-                    />
-                  );
-                }
-
-                return null;
-              });
-            })} */}
-          </AnimatePresence>
-        </Board>
+        <Board grid={grid}></Board>
 
         {gameState}
         <Queue />

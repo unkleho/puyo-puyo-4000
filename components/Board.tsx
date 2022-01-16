@@ -1,12 +1,19 @@
-import { useStore } from '../store/store';
+import { AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { getPuyoPosition, Grid, useStore } from '../store/store';
+import { Puyo } from './Puyo';
 
 type Props = {
-  children: React.ReactNode;
+  grid: Grid;
+  // children: React.ReactNode;
 };
 
-export const Board: React.FunctionComponent<Props> = ({ children }) => {
-  const grid = useStore((store) => store.grid);
+const Board: React.FunctionComponent<Props> = ({ grid }) => {
+  // const grid = useStore((store) => store.grid);
   const cellSize = useStore((store) => store.cellSize);
+  const puyos = useStore((store) => store.puyos);
+
+  console.log('render');
 
   return (
     <div className="relative">
@@ -31,7 +38,41 @@ export const Board: React.FunctionComponent<Props> = ({ children }) => {
         })}
       </div>
 
-      <div className="absolute top-0">{children}</div>
+      <div className="absolute top-0">
+        <AnimatePresence>
+          {Object.entries(puyos)
+            .filter(([id]) => {
+              const [column, row] = getPuyoPosition(grid, id);
+              return column !== null && row !== null;
+            })
+            .map(([id, puyo]) => {
+              const [column, row] = getPuyoPosition(grid, id);
+
+              return (
+                <Puyo
+                  id={id}
+                  colour={puyo.colour}
+                  x={column * cellSize}
+                  y={row * cellSize}
+                  key={id}
+                />
+              );
+            })}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
+
+export const MemoBoard = React.memo(Board, (prevProps, nextProps) => {
+  const prevGridString = prevProps.grid.join(',');
+  const nextGridString = nextProps.grid.join(',');
+
+  console.log(prevGridString, nextGridString);
+
+  if (prevGridString === nextGridString) {
+    return true;
+  }
+
+  return false;
+});

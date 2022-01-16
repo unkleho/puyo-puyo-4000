@@ -13,6 +13,8 @@ export type Store = {
   userPuyoIds: [string, string];
   /** Width and height of grid cell */
   cellSize: number;
+  /** Time between puyo moves in milliseconds */
+  tickSpeed: number;
   togglePauseGame: () => void;
   movePuyo: (direction: MovePuyoDirection) => void;
   rotatePuyo: () => void;
@@ -90,6 +92,7 @@ export const useStore = create<Store>((set) => ({
   },
   userPuyoIds: ['0', '1'],
   nextPuyoIds: ['2', '3', '4', '5'],
+  tickSpeed: 500,
   gameState: 'drop-puyo',
   togglePauseGame: () =>
     set((state) => ({
