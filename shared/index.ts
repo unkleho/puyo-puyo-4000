@@ -1,23 +1,34 @@
 import { cloneGrid, getPuyoPosition, Grid } from '../store/store';
 
+type CheckDownState = 'landed' | 'active';
 /**
  * Check if user puyos can move down. If it can't, return 'landed' state.
  * @param grid
  * @param userPuyoIds
- * @returns
  */
-export function checkDown(grid: Grid, userPuyoIds: [string, string]) {
+export function checkDown(
+  grid: Grid,
+  userPuyoIds: [string, string],
+): CheckDownState {
   const userPuyoPositions = userPuyoIds.map((id) => {
     return getPuyoPosition(grid, id);
   });
 
-  let puyoState: 'landed' | 'active' = 'active';
+  let puyoState: CheckDownState = 'active';
 
-  userPuyoPositions.forEach(([column, row]) => {
+  userPuyoPositions.forEach(([column, row], index) => {
     if (typeof column === 'number' && typeof row === 'number') {
-      if (grid[row + 1] && grid[row + 1][column] === null) {
-      } else {
+      if (grid[row + 1] === undefined) {
+        // Puyo has reached bottom as check is out of bounds
         puyoState = 'landed';
+      } else {
+        const downPuyoId = grid[row + 1][column];
+        // Check if puyo below is part of user puyo
+        const userPuyoIsDown = userPuyoIds.includes(downPuyoId as string);
+
+        if (!userPuyoIsDown && grid[row + 1][column] !== null) {
+          puyoState = 'landed';
+        }
       }
     }
   });
@@ -25,7 +36,7 @@ export function checkDown(grid: Grid, userPuyoIds: [string, string]) {
   return puyoState;
 }
 
-export function dropPuyos(oldGrid: Grid): Grid {
+export function collapsePuyos(oldGrid: Grid): Grid {
   // Store original number of rows
   const totalRows = oldGrid.length;
 

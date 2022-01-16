@@ -10,7 +10,6 @@ export const Queue = () => {
     <div className="relative">
       {puyoIds.map((id, index) => {
         const puyo = puyos[id];
-        // console.log(puyo);
 
         return (
           <Puyo
