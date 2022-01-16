@@ -11,8 +11,8 @@ type Props = {
 export const Puyo: React.FunctionComponent<Props> = ({ id, colour, x, y }) => {
   return (
     <motion.div
-      layout
-      layoutId={id}
+      // layout
+      // layoutId={id}
       key={id}
       style={{
         position: 'absolute',
