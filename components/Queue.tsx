@@ -10,13 +10,15 @@ export const Queue = () => {
     <div className="relative">
       {puyoIds.map((id, index) => {
         const puyo = puyos[id];
+        const gap = index >= 2 ? cellSize / 2 : 0;
 
         return (
           <Puyo
             id={id}
             colour={puyo.colour}
+            cellSize={cellSize}
             // state={puyo.state}
-            y={index * cellSize}
+            y={index * cellSize + gap}
             key={id}
           />
         );

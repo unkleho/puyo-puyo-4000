@@ -11,44 +11,47 @@ import styles from '../styles/Home.module.css';
 const tickSpeed = 500;
 
 const Home: NextPage = () => {
-  const cellSize = useStore((store) => store.cellSize);
   const grid = useStore((store) => store.grid);
-  const rows = useStore((store) => store.rows);
-  // const puyos = useStore((store) => store.puyos);
   const gameState = useStore((store) => store.gameState);
+
+  const startGame = useStore((store) => store.startGame);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
-  const movePuyo = useStore((store) => store.movePuyo);
-  const rotatePuyo = useStore((store) => store.rotatePuyo);
-  const addPuyoToGrid = useStore((store) => store.addPuyoToGrid);
+  const movePuyos = useStore((store) => store.movePuyos);
+  const rotatePuyos = useStore((store) => store.rotatePuyos);
+  const addPuyosToGrid = useStore((store) => store.addPuyosToGrid);
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
 
   useKeyPress('ArrowLeft', () => {
-    movePuyo('left');
+    movePuyos('left');
   });
 
   useKeyPress('ArrowRight', () => {
-    movePuyo('right');
+    movePuyos('right');
   });
 
   useKeyPress('ArrowUp', () => {
-    rotatePuyo();
+    rotatePuyos();
   });
 
   useKeyPress('ArrowDown', () => {
-    movePuyo('down');
+    movePuyos('down');
   });
 
   useEffect(() => {
     let interval: number = 0;
 
-    if (gameState === 'drop-puyo') {
+    if (gameState === 'start') {
+      addPuyosToGrid();
+    } else if (gameState === 'drop-puyos') {
       interval = window.setInterval(() => {
-        movePuyo('down');
+        console.log('interval', interval);
+
+        movePuyos('down');
       }, tickSpeed);
     } else if (gameState === 'paused') {
       window.clearInterval(interval);
-    } else if (gameState === 'landed') {
+    } else if (gameState === 'landed-puyos') {
       window.clearInterval(interval);
 
       window.setTimeout(() => {
@@ -63,33 +66,26 @@ const Home: NextPage = () => {
         clearPuyos();
       }, tickSpeed);
     } else if (gameState === 'add-puyos') {
-      addPuyoToGrid();
+      addPuyosToGrid();
     }
 
     return () => {
       window.clearInterval(interval);
     };
-  }, [gameState, movePuyo, addPuyoToGrid, clearPuyos, collapsePuyos]);
-
-  // console.log(grid);
-  // console.log(gameState, grid);
-
-  const gridTest = grid.reduce((prev, curr) => {
-    return [...prev, ...curr];
-  }, []);
-
-  // console.log(gridTest);
+  }, [gameState, movePuyos, addPuyosToGrid, clearPuyos, collapsePuyos]);
 
   return (
-    <div className={styles.container}>
-      <div className="flex">
-        <Board grid={grid}></Board>
+    <main className={'grid place-content-center h-full bg-slate-800'}>
+      <div className="flex mb-4">
+        <Board grid={grid} className="mr-4"></Board>
 
-        {gameState}
         <Queue />
-        <button onClick={() => togglePauseGame()}>Pause</button>
       </div>
-    </div>
+      <button onClick={() => startGame()}>Start</button>
+      <button onClick={() => togglePauseGame()}>Pause</button>
+
+      <p className="mt-4 uppercase text-sm">{gameState}</p>
+    </main>
   );
 };
 

@@ -4,7 +4,7 @@ import Head from 'next/head';
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <div>
+    <>
       <Head>
         <title>Puyo Puyo</title>
         <meta name="description" content="Puyo puyo React clone" />
@@ -12,7 +12,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       </Head>
 
       <Component {...pageProps} />
-    </div>
+    </>
   );
 }
 
