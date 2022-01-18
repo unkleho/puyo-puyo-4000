@@ -14,7 +14,7 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
   const cellSize = useStore((store) => store.cellSize);
   const puyos = useStore((store) => store.puyos);
 
-  console.log('render');
+  // console.log('render');
 
   return (
     <div className={['relative', className || ''].join(' ')}>
@@ -26,7 +26,7 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
                 return (
                   <div
                     key={j}
-                    className="outline-1 outline-slate-700 outline"
+                    className="outline-[0.5px] outline-slate-700 outline"
                     style={{
                       width: cellSize,
                       height: cellSize,

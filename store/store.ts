@@ -2,6 +2,56 @@ import create from 'zustand';
 import { checkDown, collapsePuyos } from '../shared';
 import { clearPuyos } from '../shared/clear-puyos';
 
+export type GameState =
+  | 'idle'
+  | 'start'
+  | 'stop'
+  | 'paused'
+  | 'lose'
+  | 'drop-puyos'
+  | 'landed-puyos'
+  | 'clear-puyos'
+  | 'collapse-puyos'
+  | 'add-puyos';
+
+export type Puyo = {
+  colour: PuyoColour;
+};
+export type Puyos = {
+  [k in string]: Puyo;
+};
+export enum PuyoColour {
+  RED = 'red',
+  GREEN = 'green',
+  BLUE = 'blue',
+  YELLOW = 'yellow',
+  PURPLE = 'purple',
+}
+export const puyoColours = [
+  PuyoColour.RED,
+  PuyoColour.BLUE,
+  PuyoColour.GREEN,
+  PuyoColour.YELLOW,
+  PuyoColour.PURPLE,
+];
+export type MovePuyoDirection = 'left' | 'right' | 'down';
+
+export type Grid = (string | null)[][];
+const clearGrid = [
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+];
+
 export type Store = {
   gameState: GameState;
   columns: number;
@@ -19,101 +69,71 @@ export type Store = {
   togglePauseGame: () => void;
   movePuyos: (direction: MovePuyoDirection) => void;
   rotatePuyos: () => void;
-  addPuyosToGrid: () => void;
-  clearPuyos: () => void;
+  addPuyos: () => void;
+  landedPuyos: () => void;
   collapsePuyos: () => void;
+  clearPuyos: () => void;
+  loseGame: () => void;
 };
-
-export type Puyo = {
-  colour: PuyoColour;
-  row?: number;
-  column?: number;
-  // state: PuyoState;
-};
-export type Puyos = {
-  [k in string]: Puyo;
-};
-
-export type MovePuyoDirection = 'left' | 'right' | 'down';
-
-// type PuyoColour = 'red' | 'green' | 'blue' | 'yellow';
-export enum PuyoColour {
-  RED = 'red',
-  GREEN = 'green',
-  BLUE = 'blue',
-  YELLOW = 'yellow',
-  PURPLE = 'purple',
-}
-export const puyoColours = [
-  PuyoColour.RED,
-  PuyoColour.BLUE,
-  PuyoColour.GREEN,
-  PuyoColour.YELLOW,
-  PuyoColour.PURPLE,
-];
-
-export type GameState =
-  | 'idle'
-  | 'start'
-  | 'stop'
-  | 'paused'
-  | 'lose'
-  | 'drop-puyos'
-  | 'landed-puyos'
-  | 'clear-puyos'
-  | 'collapse-puyos'
-  | 'add-puyos';
-
-export type Grid = (string | null)[][];
 
 export const useStore = create<Store>((set) => ({
   columns: 6,
   rows: 20,
-  cellSize: 25,
-  grid: [
-    [null, null, '0', null, null, null],
-    [null, null, '1', null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-    [null, null, null, null, null, null],
-  ],
+  cellSize: 30,
+  grid: clearGrid,
   puyos: {
-    // '0': createRandomPuyo(),
-    // '1': createRandomPuyo(),
-    // '2': createRandomPuyo(),
-    '0': { colour: PuyoColour.RED },
-    '1': { colour: PuyoColour.RED },
-    '2': { colour: PuyoColour.RED },
-    '3': { colour: PuyoColour.RED },
+    '0': createRandomPuyo(),
+    '1': createRandomPuyo(),
+    '2': createRandomPuyo(),
+    '3': createRandomPuyo(),
     '4': createRandomPuyo(),
     '5': createRandomPuyo(),
   },
   userPuyoIds: ['0', '1'],
-  nextPuyoIds: ['2', '3', '4', '5'],
+  nextPuyoIds: [],
   tickSpeed: 500,
   gameState: 'idle',
   startGame: () =>
     set(() => {
+      const grid = cloneGrid(clearGrid);
+      // TODO: Drop brand new puyos properly. May need to create two hidden rows above grid
+      grid[0][2] = '0';
+      grid[1][2] = '1';
+
       return {
-        gameState: 'start',
+        grid,
+        gameState: 'drop-puyos',
+        puyos: {
+          '0': createRandomPuyo(),
+          '1': createRandomPuyo(),
+          '2': createRandomPuyo(),
+          '3': createRandomPuyo(),
+          '4': createRandomPuyo(),
+          '5': createRandomPuyo(),
+        },
+        userPuyoIds: ['0', '1'],
+        nextPuyoIds: ['2', '3', '4', '5'],
       };
     }),
   togglePauseGame: () =>
     set((state) => ({
       gameState: state.gameState === 'paused' ? 'drop-puyos' : 'paused',
     })),
-  addPuyosToGrid: () =>
+  addPuyos: () =>
+    // TS will error if not the same return shape
+    // @ts-ignore
     set((state) => {
+      // If not enough space for puyos, YOU LOSE!
+      if (state.grid[0][2] || state.grid[1][2]) {
+        return {
+          gameState: 'lose',
+        };
+      }
+
       // Create new next puyos
       const newPuyo1 = createRandomPuyo();
       const newPuyo2 = createRandomPuyo();
+      // TODO: Work out foolproof way of creating ids
       const newPuyo1Id = Math.floor(Math.random() * 10000).toString();
       const newPuyo2Id = Math.floor(Math.random() * 10000).toString();
       const puyos = { ...state.puyos };
@@ -262,9 +282,14 @@ export const useStore = create<Store>((set) => ({
             // Move puyo2 to the right of puyo1
             grid[puyo2Row][puyo2Column] = null;
             grid[puyo1Row][puyo2Column + 1] = puyo2Id;
+          } else if (grid[puyo1Row][puyo1Column - 1] === null) {
+            // There is room on left, so rotate and shift both puyos
+            grid[puyo2Row][puyo2Column] = null;
+            grid[puyo1Row][puyo1Column - 1] = puyo1Id;
+            grid[puyo1Row][puyo1Column] = puyo2Id;
           }
         } else if (puyo2Position === 'right') {
-          if (grid[puyo1Row + 1][puyo1Column] === null) {
+          if (grid[puyo1Row + 1] && grid[puyo1Row + 1][puyo1Column] === null) {
             // Move puyo2 below puyo1
             grid[puyo2Row][puyo2Column] = null;
             grid[puyo1Row + 1][puyo1Column] = puyo2Id;
@@ -274,9 +299,14 @@ export const useStore = create<Store>((set) => ({
             // Move puyo2 to the left of puyo1
             grid[puyo2Row][puyo2Column] = null;
             grid[puyo1Row][puyo2Column - 1] = puyo2Id;
+          } else if (grid[puyo1Row][puyo1Column + 1] === null) {
+            // There is room on right, so rotate and shift both puyos
+            grid[puyo2Row][puyo2Column] = null;
+            grid[puyo1Row][puyo1Column + 1] = puyo1Id;
+            grid[puyo1Row][puyo1Column] = puyo2Id;
           }
         } else if (puyo2Position === 'left') {
-          if (grid[puyo2Row - 1][puyo1Column] === null) {
+          if (grid[puyo2Row - 1] && grid[puyo2Row - 1][puyo1Column] === null) {
             // Move puyo2 above of puyo1
             grid[puyo2Row][puyo2Column] = null;
             grid[puyo2Row - 1][puyo1Column] = puyo2Id;
@@ -289,13 +319,30 @@ export const useStore = create<Store>((set) => ({
       };
     });
   },
-  clearPuyos: () =>
+  landedPuyos: () =>
     set((state) => {
-      const [grid, puyos, totalCount] = clearPuyos(state.grid, state.puyos);
+      // Check if puyos need to be collapsed
+      const collapsedGrid = collapsePuyos(state.grid);
+      const hasGridCollapsed = !isGridEqual(collapsedGrid, state.grid);
+
+      if (hasGridCollapsed) {
+        return {
+          gameState: 'collapse-puyos',
+        };
+      }
+
+      // Check if puyos need to be cleared
+      const [clearedGrid] = clearPuyos(state.grid, state.puyos);
+      const hasGridCleared = !isGridEqual(clearedGrid, state.grid);
+
+      if (hasGridCleared) {
+        return {
+          gameState: 'clear-puyos',
+        };
+      }
 
       return {
-        grid,
-        gameState: totalCount ? 'collapse-puyos' : 'add-puyos',
+        gameState: 'add-puyos',
       };
     }),
   collapsePuyos: () =>
@@ -305,6 +352,21 @@ export const useStore = create<Store>((set) => ({
       return {
         grid,
         gameState: 'clear-puyos',
+      };
+    }),
+  clearPuyos: () =>
+    set((state) => {
+      const [grid, puyos, totalCount] = clearPuyos(state.grid, state.puyos);
+
+      return {
+        grid,
+        gameState: totalCount ? 'collapse-puyos' : 'add-puyos',
+      };
+    }),
+  loseGame: () =>
+    set(() => {
+      return {
+        gameState: 'lose',
       };
     }),
 }));
@@ -346,4 +408,14 @@ export function cloneGrid(grid: Grid) {
   const newGrid = grid.map((columns) => columns.slice());
 
   return newGrid;
+}
+
+/**
+ * Check if two grids are the same
+ */
+export function isGridEqual(oldGrid: Grid, newGrid: Grid) {
+  return (
+    oldGrid.map((columns) => columns.join(',')).join(',') ===
+    newGrid.map((columns) => columns.join(',')).join(',')
+  );
 }

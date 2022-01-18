@@ -9,6 +9,14 @@ type Props = {
   y?: number;
 };
 
+const colours = {
+  [PuyoColour.BLUE]: 'bg-blue-400',
+  [PuyoColour.RED]: 'bg-red-600',
+  [PuyoColour.YELLOW]: 'bg-yellow-400',
+  [PuyoColour.GREEN]: 'bg-green-700',
+  [PuyoColour.PURPLE]: 'bg-violet-600',
+};
+
 export const Puyo: React.FunctionComponent<Props> = ({
   id,
   colour,
@@ -24,12 +32,13 @@ export const Puyo: React.FunctionComponent<Props> = ({
       style={{
         position: 'absolute',
       }}
+      className={colours[colour]}
       animate={{
         top: y,
         left: x,
         width: cellSize,
         height: cellSize,
-        backgroundColor: colour,
+        // backgroundColor: colour,
         borderRadius: cellSize / 2,
         scale: 0.9,
       }}

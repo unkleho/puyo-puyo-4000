@@ -36,6 +36,9 @@ export function checkDown(
   return puyoState;
 }
 
+/**
+ * After clearing or landing puyos, collapse down any gaps in the grid
+ */
 export function collapsePuyos(oldGrid: Grid): Grid {
   // Store original number of rows
   const totalRows = oldGrid.length;
