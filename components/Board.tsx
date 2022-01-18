@@ -19,24 +19,27 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
   return (
     <div className={['relative', className || ''].join(' ')}>
       <div className="bg-slate-800">
-        {grid.map((columns, i) => {
-          return (
-            <div className="flex" key={i}>
-              {columns.map((column, j) => {
-                return (
-                  <div
-                    key={j}
-                    className="outline-[0.5px] outline-slate-700 outline"
-                    style={{
-                      width: cellSize,
-                      height: cellSize,
-                    }}
-                  ></div>
-                );
-              })}
-            </div>
-          );
-        })}
+        {grid
+          // Hide top two rows for new puyos
+          .filter((row, r) => r > 1)
+          .map((columns, i) => {
+            return (
+              <div className="flex" key={i}>
+                {columns.map((column, j) => {
+                  return (
+                    <div
+                      key={j}
+                      className="outline-[0.5px] outline-slate-700 outline"
+                      style={{
+                        width: cellSize,
+                        height: cellSize,
+                      }}
+                    ></div>
+                  );
+                })}
+              </div>
+            );
+          })}
       </div>
 
       <div className="absolute top-0">
@@ -45,16 +48,24 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
             const [column, row] = getPuyoPosition(grid, id);
 
             if (column !== null && row !== null) {
-              return (
-                <Puyo
-                  id={id}
-                  colour={puyo.colour}
-                  cellSize={cellSize}
-                  x={column * cellSize}
-                  y={row * cellSize}
-                  key={id}
-                />
-              );
+              // Adjust rows
+              const newRow = row - 2;
+
+              // Hide top two rows for new puyos
+              if (row > 1) {
+                return (
+                  <Puyo
+                    id={id}
+                    colour={puyo.colour}
+                    cellSize={cellSize}
+                    x={column * cellSize}
+                    y={newRow * cellSize}
+                    key={id}
+                  />
+                );
+
+                return null;
+              }
             }
 
             return null;

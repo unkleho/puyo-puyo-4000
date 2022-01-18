@@ -50,6 +50,8 @@ const clearGrid = [
   [null, null, null, null, null, null],
   [null, null, null, null, null, null],
   [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
+  [null, null, null, null, null, null],
 ];
 
 export type Store = {
@@ -65,6 +67,7 @@ export type Store = {
   cellSize: number;
   /** Time between puyo moves in milliseconds */
   tickSpeed: number;
+  score: number;
   startGame: () => void;
   togglePauseGame: () => void;
   movePuyos: (direction: MovePuyoDirection) => void;
@@ -93,6 +96,7 @@ export const useStore = create<Store>((set) => ({
   nextPuyoIds: [],
   tickSpeed: 500,
   gameState: 'idle',
+  score: 0,
   startGame: () =>
     set(() => {
       const grid = cloneGrid(clearGrid);
@@ -361,6 +365,7 @@ export const useStore = create<Store>((set) => ({
       return {
         grid,
         gameState: totalCount ? 'collapse-puyos' : 'add-puyos',
+        score: state.score + totalCount * 10,
       };
     }),
   loseGame: () =>

@@ -12,6 +12,7 @@ const Home: NextPage = () => {
   const grid = useStore((store) => store.grid);
   const gameState = useStore((store) => store.gameState);
   const tickSpeed = useStore((store) => store.tickSpeed);
+  const score = useStore((store) => store.score);
 
   const startGame = useStore((store) => store.startGame);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
@@ -93,7 +94,8 @@ const Home: NextPage = () => {
       <button onClick={() => startGame()}>Start</button>
       <button onClick={() => togglePauseGame()}>Pause</button>
 
-      <p className="mt-4 uppercase text-sm">{gameState}</p>
+      <p className="mt-4 uppercase text-sm">{score}</p>
+      <p className="uppercase text-sm">{gameState}</p>
       <p className="uppercase text-sm">{tickSpeed}</p>
     </main>
   );
