@@ -17,7 +17,6 @@ export const Queue = () => {
             id={id}
             colour={puyo.colour}
             cellSize={cellSize}
-            // state={puyo.state}
             y={index * cellSize + gap}
             key={id}
           />

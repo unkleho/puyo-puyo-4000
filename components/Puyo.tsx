@@ -1,5 +1,7 @@
-import { motion } from 'framer-motion';
+import { motion, Transition } from 'framer-motion';
 import { PuyoColour } from '../store/store';
+
+export type PuyoType = 'user' | 'board' | 'to-clear';
 
 type Props = {
   id: string;
@@ -7,6 +9,7 @@ type Props = {
   cellSize: number;
   x?: number;
   y?: number;
+  type?: PuyoType;
 };
 
 const colours = {
@@ -23,11 +26,24 @@ export const Puyo: React.FunctionComponent<Props> = ({
   cellSize,
   x,
   y,
+  type,
 }) => {
+  let transition: Transition = {};
+  if (type === 'board') {
+    transition = {
+      type: 'spring',
+      bounce: 0.3,
+    };
+  } else if (type === 'to-clear') {
+    transition = {
+      type: 'tween',
+      ease: 'easeIn',
+      duration: 0.2,
+    };
+  }
+
   return (
     <motion.div
-      // layout
-      // layoutId={id}
       key={id}
       style={{
         position: 'absolute',
@@ -38,13 +54,16 @@ export const Puyo: React.FunctionComponent<Props> = ({
         left: x,
         width: cellSize,
         height: cellSize,
-        // backgroundColor: colour,
         borderRadius: cellSize / 2,
         scale: 0.9,
+        zIndex: type === 'to-clear' ? 0 : 10,
       }}
       exit={{
-        scale: 0.1,
+        scale: 0.01,
       }}
-    ></motion.div>
+      transition={transition}
+    >
+      {/* {type} */}
+    </motion.div>
   );
 };

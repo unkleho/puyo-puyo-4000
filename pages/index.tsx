@@ -5,8 +5,8 @@ import { Queue } from '../components/Queue';
 import { useKeyPress } from '../hooks/use-key-press';
 import { useStore } from '../store/store';
 
-const collapsePuyosTimeout = 200;
-const clearPuyosTimeout = 200;
+const collapsePuyosTimeout = 300;
+const clearPuyosTimeout = 300;
 
 const Home: NextPage = () => {
   const grid = useStore((store) => store.grid);

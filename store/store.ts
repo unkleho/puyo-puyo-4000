@@ -60,9 +60,11 @@ export type Store = {
   rows: number;
   grid: Grid;
   puyos: Puyos;
-  nextPuyoIds: string[];
   /** Two user controlled puyos, 2nd one rotates around 1st */
   userPuyoIds: [string, string];
+  nextPuyoIds: string[];
+  /** Puyos about to be cleared */
+  puyoIdsToClear: string[];
   /** Width and height of grid cell */
   cellSize: number;
   /** Time between puyo moves in milliseconds */
@@ -94,6 +96,7 @@ export const useStore = create<Store>((set) => ({
   },
   userPuyoIds: ['0', '1'],
   nextPuyoIds: [],
+  puyoIdsToClear: [],
   tickSpeed: 500,
   gameState: 'idle',
   score: 0,
@@ -123,6 +126,12 @@ export const useStore = create<Store>((set) => ({
     set((state) => ({
       gameState: state.gameState === 'paused' ? 'drop-puyos' : 'paused',
     })),
+  loseGame: () =>
+    set(() => {
+      return {
+        gameState: 'lose',
+      };
+    }),
   addPuyos: () =>
     // TS will error if not the same return shape
     // @ts-ignore
@@ -324,6 +333,8 @@ export const useStore = create<Store>((set) => ({
     });
   },
   landedPuyos: () =>
+    // Jest wigs out for some reason
+    // @ts-ignore
     set((state) => {
       // Check if puyos need to be collapsed
       const collapsedGrid = collapsePuyos(state.grid);
@@ -332,21 +343,24 @@ export const useStore = create<Store>((set) => ({
       if (hasGridCollapsed) {
         return {
           gameState: 'collapse-puyos',
+          puyoIdsToClear: [],
         };
       }
 
       // Check if puyos need to be cleared
-      const [clearedGrid] = clearPuyos(state.grid, state.puyos);
+      const [clearedGrid, puyoIdsToClear] = clearPuyos(state.grid, state.puyos);
       const hasGridCleared = !isGridEqual(clearedGrid, state.grid);
 
       if (hasGridCleared) {
         return {
           gameState: 'clear-puyos',
+          puyoIdsToClear,
         };
       }
 
       return {
         gameState: 'add-puyos',
+        puyoIdsToClear: [],
       };
     }),
   collapsePuyos: () =>
@@ -366,12 +380,6 @@ export const useStore = create<Store>((set) => ({
         grid,
         gameState: totalCount ? 'collapse-puyos' : 'add-puyos',
         score: state.score + totalCount * 10,
-      };
-    }),
-  loseGame: () =>
-    set(() => {
-      return {
-        gameState: 'lose',
       };
     }),
 }));

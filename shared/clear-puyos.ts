@@ -7,18 +7,19 @@ import { cloneGrid, getPuyoPosition, Grid, Puyos } from '../store/store';
 export function clearPuyos(
   oldGrid: Grid,
   oldPuyos: Puyos,
-): [Grid, Puyos, number] {
+): [Grid, string[], number] {
   const grid = cloneGrid(oldGrid);
   const puyos = {
     ...oldPuyos,
   };
   let totalCount = 0;
+  let totalPuyoIdsToClear: string[] = [];
 
   // Loop through each puyo
   Object.keys(puyos).forEach((puyoId) => {
     let count = 1;
     let queue = [puyoId];
-    let puyoIdsToDestroy = [puyoId];
+    let puyoIdsToClear = [puyoId];
 
     while (queue.length > 0) {
       const currentPuyoId = queue.shift();
@@ -36,13 +37,13 @@ export function clearPuyos(
           if (
             adjacentPuyo &&
             currentPuyo.colour === adjacentPuyo.colour &&
-            !puyoIdsToDestroy.includes(adjacentPuyoId)
+            !puyoIdsToClear.includes(adjacentPuyoId)
           ) {
             count += 1;
             // Add to the queue and continue while loop
             queue.push(adjacentPuyoId);
             // Mark this puyo to get destroyed, otherwise we get infinite loop
-            puyoIdsToDestroy.push(adjacentPuyoId);
+            puyoIdsToClear.push(adjacentPuyoId);
           }
         });
       }
@@ -50,21 +51,22 @@ export function clearPuyos(
 
     if (count >= 4) {
       totalCount += count;
+      totalPuyoIdsToClear = [...totalPuyoIdsToClear, ...puyoIdsToClear];
 
-      puyoIdsToDestroy.forEach((puyoIdToDelete) => {
-        const [column, row] = getPuyoPosition(grid, puyoIdToDelete);
+      puyoIdsToClear.forEach((puyoIdToClear) => {
+        const [column, row] = getPuyoPosition(grid, puyoIdToClear);
 
         if (typeof column === 'number' && typeof row === 'number') {
           // Clear grid of puyos
           grid[row][column] = null;
           // Delete puyo from list of puyos
-          delete puyos[puyoIdToDelete];
+          delete puyos[puyoIdToClear];
         }
       });
     }
   });
 
-  return [grid, puyos, totalCount];
+  return [grid, totalPuyoIdsToClear, totalCount];
 }
 
 /**

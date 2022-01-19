@@ -38,10 +38,21 @@ describe('Clear Puyos', () => {
   });
 
   it('should clear puyos from grid', () => {
-    const [newGrid, newPuyos, totalCount] = clearPuyos(grid, puyos);
+    const [newGrid, puyoIdsToClear, totalCount] = clearPuyos(grid, puyos);
 
-    // console.log(newGrid, newPuyos, totalCount);
+    // console.log(newGrid, puyoIdsToClear, totalCount);
     expect(totalCount).toEqual(9);
+    expect(puyoIdsToClear).toEqual([
+      '0',
+      '4',
+      '1',
+      '2',
+      '3',
+      '6',
+      '7',
+      '8',
+      '9',
+    ]);
   });
 
   it('should drop puyos down after clearing or user landed', () => {
