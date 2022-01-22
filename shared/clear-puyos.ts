@@ -7,13 +7,13 @@ import { cloneGrid, getPuyoPosition, Grid, Puyos } from '../store/store';
 export function clearPuyos(
   oldGrid: Grid,
   oldPuyos: Puyos,
-): [Grid, string[], number] {
+): [Grid, string[][], number] {
   const grid = cloneGrid(oldGrid);
   const puyos = {
     ...oldPuyos,
   };
   let totalCount = 0;
-  let totalPuyoIdsToClear: string[] = [];
+  let totalPuyoIdsToClear: string[][] = [];
 
   // Loop through each puyo
   Object.keys(puyos).forEach((puyoId) => {
@@ -51,7 +51,7 @@ export function clearPuyos(
 
     if (count >= 4) {
       totalCount += count;
-      totalPuyoIdsToClear = [...totalPuyoIdsToClear, ...puyoIdsToClear];
+      totalPuyoIdsToClear = [...totalPuyoIdsToClear, puyoIdsToClear];
 
       puyoIdsToClear.forEach((puyoIdToClear) => {
         const [column, row] = getPuyoPosition(grid, puyoIdToClear);

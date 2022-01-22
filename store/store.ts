@@ -1,6 +1,7 @@
 import create from 'zustand';
 import { checkDown, collapsePuyos } from '../shared';
 import { clearPuyos } from '../shared/clear-puyos';
+import { getScore } from '../shared/score';
 
 export type GameState =
   | 'idle'
@@ -70,6 +71,8 @@ export type Store = {
   /** Time between puyo moves in milliseconds */
   tickSpeed: number;
   score: number;
+  /** Temporary storage for chains in between clear and collapse states, final value used to score chain seqeunce */
+  tempPuyoChains: PuyoColour[][];
   startGame: () => void;
   togglePauseGame: () => void;
   movePuyos: (direction: MovePuyoDirection) => void;
@@ -100,6 +103,7 @@ export const useStore = create<Store>((set) => ({
   tickSpeed: 500,
   gameState: 'idle',
   score: 0,
+  tempPuyoChains: [],
   startGame: () =>
     set(() => {
       const grid = cloneGrid(clearGrid);
@@ -157,8 +161,8 @@ export const useStore = create<Store>((set) => ({
 
       // Add puyos to grid
       const grid = cloneGrid(state.grid);
-      grid[0][2] = state.nextPuyoIds[0];
-      grid[1][2] = state.nextPuyoIds[1];
+      grid[0][2] = state.nextPuyoIds[1];
+      grid[1][2] = state.nextPuyoIds[0];
 
       return {
         // Assign next two puyos to user
@@ -374,12 +378,34 @@ export const useStore = create<Store>((set) => ({
     }),
   clearPuyos: () =>
     set((state) => {
-      const [grid, puyos, totalCount] = clearPuyos(state.grid, state.puyos);
+      const [grid, clearedPuyoIdGroups, totalCount] = clearPuyos(
+        state.grid,
+        state.puyos,
+      );
 
+      const puyoChains = clearedPuyoIdGroups.map((puyoIds) =>
+        puyoIds.map((puyoId) => state.puyos[puyoId].colour),
+      );
+
+      // console.log('clearPuyos', puyoChains);
+
+      // If there are puyos cleared, collapse puyos and keep track of chains
+      if (totalCount) {
+        return {
+          grid,
+          gameState: 'collapse-puyos',
+          score: state.score,
+          tempPuyoChains: [...state.tempPuyoChains, ...puyoChains],
+        };
+      }
+
+      // If there are no more puyos cleared, add up total score and continue
+      // game and add puyos
       return {
         grid,
         gameState: totalCount ? 'collapse-puyos' : 'add-puyos',
-        score: state.score + totalCount * 10,
+        score: state.score + getScore(state.tempPuyoChains),
+        tempPuyoChains: [],
       };
     }),
 }));
@@ -410,7 +436,6 @@ export function getPuyoPosition(
     }),
   );
 
-  // console.log(userPuyo1);
   return [puyoColumn, puyoRow];
 }
 

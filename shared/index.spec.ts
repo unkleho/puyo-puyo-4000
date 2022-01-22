@@ -1,6 +1,7 @@
 import { Grid, PuyoColour, Puyos } from '../store/store';
-import { checkDown, collapsePuyos } from '.';
+import { checkDown, collapsePuyos } from './';
 import { clearPuyos, getAdjacentPuyoIds } from './clear-puyos';
+import { getScore } from './score';
 
 const grid: Grid = [
   [null, null, null, null, null, null],
@@ -43,15 +44,8 @@ describe('Clear Puyos', () => {
     // console.log(newGrid, puyoIdsToClear, totalCount);
     expect(totalCount).toEqual(9);
     expect(puyoIdsToClear).toEqual([
-      '0',
-      '4',
-      '1',
-      '2',
-      '3',
-      '6',
-      '7',
-      '8',
-      '9',
+      ['0', '4', '1', '2', '3'],
+      ['6', '7', '8', '9'],
     ]);
   });
 
@@ -116,5 +110,24 @@ describe('Check Puyos', () => {
     ];
     const puyoState = checkDown(grid, ['user-0', 'user-1']);
     expect(puyoState).toEqual('active');
+  });
+});
+
+describe('Scoring', () => {
+  it('should return 0', () => {
+    const chains = [
+      [PuyoColour.BLUE, PuyoColour.BLUE, PuyoColour.BLUE, PuyoColour.BLUE],
+    ];
+    const score = getScore(chains);
+    expect(score).toEqual(40);
+  });
+
+  it('should return 2 chain, 2 colour score', () => {
+    const chains = [
+      [PuyoColour.BLUE, PuyoColour.BLUE, PuyoColour.BLUE, PuyoColour.BLUE],
+      [PuyoColour.RED, PuyoColour.RED, PuyoColour.RED, PuyoColour.RED],
+    ];
+    const score = getScore(chains);
+    expect(score).toEqual(880);
   });
 });

@@ -1,4 +1,10 @@
-import { cloneGrid, getPuyoPosition, Grid } from '../store/store';
+import {
+  cloneGrid,
+  getPuyoPosition,
+  Grid,
+  PuyoColour,
+  puyoColours,
+} from '../store/store';
 
 type CheckDownState = 'landed' | 'active';
 /**
