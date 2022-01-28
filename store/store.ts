@@ -71,8 +71,8 @@ export type Store = {
   /** Time between puyo moves in milliseconds */
   tickSpeed: number;
   score: number;
-  /** Temporary storage for chains in between clear and collapse states, final value used to score chain seqeunce */
-  tempPuyoChains: PuyoColour[][];
+  /** Temporary chain count between clear and collapse states, used to work out chain power & scoring */
+  chainCount: number;
   startGame: () => void;
   togglePauseGame: () => void;
   movePuyos: (direction: MovePuyoDirection) => void;
@@ -104,6 +104,7 @@ export const useStore = create<Store>((set) => ({
   gameState: 'idle',
   score: 0,
   tempPuyoChains: [],
+  chainCount: 0,
   startGame: () =>
     set(() => {
       const grid = cloneGrid(clearGrid);
@@ -124,6 +125,7 @@ export const useStore = create<Store>((set) => ({
         },
         userPuyoIds: ['0', '1'],
         nextPuyoIds: ['2', '3', '4', '5'],
+        score: 0,
       };
     }),
   togglePauseGame: () =>
@@ -394,8 +396,8 @@ export const useStore = create<Store>((set) => ({
         return {
           grid,
           gameState: 'collapse-puyos',
-          score: state.score,
-          tempPuyoChains: [...state.tempPuyoChains, ...puyoChains],
+          score: state.score + getScore(state.chainCount + 1, puyoChains),
+          chainCount: state.chainCount + 1,
         };
       }
 
@@ -403,9 +405,10 @@ export const useStore = create<Store>((set) => ({
       // game and add puyos
       return {
         grid,
-        gameState: totalCount ? 'collapse-puyos' : 'add-puyos',
-        score: state.score + getScore(state.tempPuyoChains),
-        tempPuyoChains: [],
+        // gameState: totalCount ? 'collapse-puyos' : 'add-puyos',
+        gameState: 'add-puyos',
+        score: state.score,
+        chainCount: 0,
       };
     }),
 }));

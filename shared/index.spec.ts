@@ -114,20 +114,20 @@ describe('Check Puyos', () => {
 });
 
 describe('Scoring', () => {
-  it('should return 0', () => {
+  it('should first chain score', () => {
     const chains = [
       [PuyoColour.BLUE, PuyoColour.BLUE, PuyoColour.BLUE, PuyoColour.BLUE],
     ];
-    const score = getScore(chains);
+    const score = getScore(1, chains);
     expect(score).toEqual(40);
   });
 
-  it('should return 2 chain, 2 colour score', () => {
+  it('should return 2nd chain score', () => {
     const chains = [
       [PuyoColour.BLUE, PuyoColour.BLUE, PuyoColour.BLUE, PuyoColour.BLUE],
-      [PuyoColour.RED, PuyoColour.RED, PuyoColour.RED, PuyoColour.RED],
+      // [PuyoColour.RED, PuyoColour.RED, PuyoColour.RED, PuyoColour.RED],
     ];
-    const score = getScore(chains);
-    expect(score).toEqual(880);
+    const score = getScore(2, chains);
+    expect(score).toEqual(320);
   });
 });

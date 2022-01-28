@@ -23,25 +23,24 @@ function getPuyoScore(
  * Score for puyo chain combos
  * @param puyoChains
  */
-export function getScore(puyoChains: PuyoColour[][]) {
-  // --------------------------------------------------------------------------
-  // Total Cleared
-  // --------------------------------------------------------------------------
-  const totalCleared = puyoChains.reduce((total, chain) => {
-    return total + chain.length;
-  }, 0);
-
+export function getScore(chainCount: number, puyoChains: PuyoColour[][]) {
   // --------------------------------------------------------------------------
   // Chain Power
   // --------------------------------------------------------------------------
   const chainPowerChains = Object.keys(chainPowerTable).reverse();
   const maxChains = parseInt(chainPowerChains[0]);
 
-  // Work out total chains, making sure to not exceed chainPowerTable
-  const totalChains =
-    puyoChains.length < maxChains ? puyoChains.length : maxChains;
+  // Work out new chain count, making sure to not exceed chainPowerTable
+  const newChainCount = chainCount < maxChains ? chainCount : maxChains;
   // @ts-ignore
-  const chainPower = chainPowerTable[totalChains];
+  const chainPower = chainPowerTable[newChainCount];
+
+  // --------------------------------------------------------------------------
+  // Total Cleared
+  // --------------------------------------------------------------------------
+  const totalCleared = puyoChains.reduce((total, chain) => {
+    return total + chain.length;
+  }, 0);
 
   // --------------------------------------------------------------------------
   // Colour Bonus

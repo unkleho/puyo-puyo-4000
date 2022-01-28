@@ -13,6 +13,7 @@ const Home: NextPage = () => {
   const gameState = useStore((store) => store.gameState);
   const tickSpeed = useStore((store) => store.tickSpeed);
   const score = useStore((store) => store.score);
+  const chainCount = useStore((store) => store.chainCount);
 
   const startGame = useStore((store) => store.startGame);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
@@ -82,7 +83,7 @@ const Home: NextPage = () => {
     loseGame,
   ]);
 
-  console.log(gameState);
+  // console.log(gameState);
 
   return (
     <main className={'grid place-content-center h-full bg-slate-800'}>
@@ -97,6 +98,7 @@ const Home: NextPage = () => {
       <p className="mt-4 uppercase text-sm">{score}</p>
       <p className="uppercase text-sm">{gameState}</p>
       <p className="uppercase text-sm">{tickSpeed}</p>
+      <p className="uppercase text-sm">{chainCount}</p>
     </main>
   );
 };
