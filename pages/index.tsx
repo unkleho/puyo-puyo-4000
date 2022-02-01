@@ -7,6 +7,7 @@ import { useStore } from '../store/store';
 
 const collapsePuyosTimeout = 300;
 const clearPuyosTimeout = 300;
+const landingPuyosTimeout = 300;
 
 const Home: NextPage = () => {
   const grid = useStore((store) => store.grid);
@@ -20,6 +21,7 @@ const Home: NextPage = () => {
   const movePuyos = useStore((store) => store.movePuyos);
   const rotatePuyos = useStore((store) => store.rotatePuyos);
   const addPuyos = useStore((store) => store.addPuyos);
+  const landingPuyos = useStore((store) => store.landingPuyos);
   const landedPuyos = useStore((store) => store.landedPuyos);
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
@@ -52,6 +54,10 @@ const Home: NextPage = () => {
       }, tickSpeed);
     } else if (gameState === 'paused') {
       window.clearInterval(interval);
+    } else if (gameState === 'landing-puyos') {
+      window.setTimeout(() => {
+        landingPuyos();
+      }, landingPuyosTimeout);
     } else if (gameState === 'landed-puyos') {
       window.clearInterval(interval);
       landedPuyos();
@@ -86,8 +92,8 @@ const Home: NextPage = () => {
   // console.log(gameState);
 
   return (
-    <main className={'grid place-content-center h-full bg-slate-800'}>
-      <div className="flex mb-4">
+    <main className={'grid h-full place-content-center bg-slate-800'}>
+      <div className="mb-4 flex">
         <Board grid={grid} className="mr-4"></Board>
 
         <Queue />
@@ -95,10 +101,10 @@ const Home: NextPage = () => {
       <button onClick={() => startGame()}>Start</button>
       <button onClick={() => togglePauseGame()}>Pause</button>
 
-      <p className="mt-4 uppercase text-sm">{score}</p>
-      <p className="uppercase text-sm">{gameState}</p>
-      <p className="uppercase text-sm">{tickSpeed}</p>
-      <p className="uppercase text-sm">{chainCount}</p>
+      <p className="mt-4 text-sm uppercase">{score}</p>
+      <p className="text-sm uppercase">{gameState}</p>
+      <p className="text-sm uppercase">{tickSpeed}</p>
+      <p className="text-sm uppercase">{chainCount}</p>
     </main>
   );
 };

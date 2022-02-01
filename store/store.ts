@@ -10,6 +10,7 @@ export type GameState =
   | 'paused'
   | 'lose'
   | 'drop-puyos'
+  | 'landing-puyos'
   | 'landed-puyos'
   | 'clear-puyos'
   | 'collapse-puyos'
@@ -78,6 +79,7 @@ export type Store = {
   movePuyos: (direction: MovePuyoDirection) => void;
   rotatePuyos: () => void;
   addPuyos: () => void;
+  landingPuyos: () => void;
   landedPuyos: () => void;
   collapsePuyos: () => void;
   clearPuyos: () => void;
@@ -199,7 +201,6 @@ export const useStore = create<Store>((set) => ({
       ) {
         if (direction === 'down') {
           const puyoState = checkDown(grid, state.userPuyoIds);
-          // console.log(puyoState);
 
           if (puyoState === 'active') {
             if (puyo1Row > puyo2Row) {
@@ -216,7 +217,7 @@ export const useStore = create<Store>((set) => ({
               grid[puyo1Row + 1][puyo1Column] = puyo1Id;
             }
           } else {
-            gameState = 'landed-puyos';
+            gameState = 'landing-puyos';
           }
         } else if (direction === 'left') {
           // Work out which puyo is on the left, then use it to check
@@ -276,6 +277,7 @@ export const useStore = create<Store>((set) => ({
 
       // Work out relative position of puyo2
       let puyo2Position: 'up' | 'right' | 'down' | 'left' = 'down';
+
       if (
         typeof puyo1Column === 'number' &&
         typeof puyo1Row === 'number' &&
@@ -312,6 +314,11 @@ export const useStore = create<Store>((set) => ({
             // Move puyo2 below puyo1
             grid[puyo2Row][puyo2Column] = null;
             grid[puyo1Row + 1][puyo1Column] = puyo2Id;
+          } else {
+            // Move puyo2 below puyo1 AND shift puyos up
+            grid[puyo2Row][puyo2Column] = null;
+            grid[puyo1Row - 1][puyo1Column] = puyo1Id;
+            grid[puyo2Row][puyo2Column - 1] = puyo2Id;
           }
         } else if (puyo2Position === 'down') {
           if (grid[puyo1Row][puyo2Column - 1] === null) {
@@ -335,6 +342,17 @@ export const useStore = create<Store>((set) => ({
 
       return {
         grid,
+      };
+    });
+  },
+  landingPuyos: () => {
+    set((state) => {
+      const puyoState = checkDown(state.grid, state.userPuyoIds);
+
+      return {
+        // There is a bit of time while landing to move puyos, but after that,
+        // trigger landed-puyos to start clear/collapse state
+        gameState: puyoState === 'landed' ? 'landed-puyos' : 'drop-puyos',
       };
     });
   },
