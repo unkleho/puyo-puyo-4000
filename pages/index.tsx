@@ -2,6 +2,7 @@ import type { NextPage } from 'next';
 import React, { useEffect } from 'react';
 import { MemoBoard as Board } from '../components/Board';
 import { Queue } from '../components/Queue';
+import { ThreeBoard } from '../components/ThreeBoard';
 import { useKeyPress } from '../hooks/use-key-press';
 import { useStore } from '../store/store';
 
@@ -83,6 +84,7 @@ const Home: NextPage = () => {
     tickSpeed,
     movePuyos,
     addPuyos,
+    landingPuyos,
     landedPuyos,
     clearPuyos,
     collapsePuyos,
@@ -92,12 +94,14 @@ const Home: NextPage = () => {
   // console.log(gameState);
 
   return (
-    <main className={'grid h-full place-content-center bg-slate-800'}>
+    <main className={'grid h-full place-content-center bg-zinc-900'}>
       <div className="mb-4 flex">
-        <Board grid={grid} className="mr-4"></Board>
+        {/* <Board grid={grid} className="mr-4"></Board> */}
 
+        <ThreeBoard grid={grid} />
         <Queue />
       </div>
+
       <button onClick={() => startGame()}>Start</button>
       <button onClick={() => togglePauseGame()}>Pause</button>
 

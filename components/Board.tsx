@@ -31,7 +31,7 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
                   return (
                     <div
                       key={j}
-                      className="outline-[0.5px] outline-slate-700 outline"
+                      className="outline outline-[0.5px] outline-slate-700"
                       style={{
                         width: cellSize,
                         height: cellSize,
@@ -75,8 +75,6 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
                     type={type}
                   />
                 );
-
-                return null;
               }
             }
 
