@@ -1,6 +1,8 @@
 import type { NextPage } from 'next';
 import React, { useEffect } from 'react';
+import useMeasure from 'react-use-measure';
 import { MemoBoard as Board } from '../components/Board';
+import { ControlButtons } from '../components/ControlButtons';
 import { Queue } from '../components/Queue';
 import { ThreeBoard } from '../components/ThreeBoard';
 import { useKeyPress } from '../hooks/use-key-press';
@@ -16,6 +18,8 @@ const Home: NextPage = () => {
   const tickSpeed = useStore((store) => store.tickSpeed);
   const score = useStore((store) => store.score);
   const chainCount = useStore((store) => store.chainCount);
+  const cellSize = useStore((store) => store.cellSize);
+  const setCellSize = useStore((store) => store.setCellSize);
 
   const startGame = useStore((store) => store.startGame);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
@@ -27,6 +31,18 @@ const Home: NextPage = () => {
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
   const loseGame = useStore((store) => store.loseGame);
+
+  const [ref, { width }] = useMeasure();
+
+  // Allow space for gaps and borders
+  const boardGap = 4;
+  const gridGap = 0;
+  const totalGap = boardGap * 4 + gridGap;
+  // const cellSize = (width - totalGap) / 7;
+  // React.useEffect(() => {
+  //   setCellSize(cellSize);
+  // }, [cellSize]);
+  // console.log({ width });
 
   useKeyPress('ArrowLeft', () => {
     movePuyos('left');
@@ -94,21 +110,52 @@ const Home: NextPage = () => {
   // console.log(gameState);
 
   return (
-    <main className={'grid h-full place-content-center bg-zinc-900'}>
-      <div className="mb-4 flex">
-        {/* <Board grid={grid} className="mr-4"></Board> */}
+    <main className={'h-full bg-zinc-900 p-4'}>
+      <div className="game gap-4">
+        <div
+          className="overflow-hidden border-zinc-800 bg-zinc-800"
+          style={{
+            // width: cellSize * 6,
+            // height: cellSize * 12,
+            // borderRadius: (cellSize / 2) * 1.3,
+            borderRadius: (cellSize / 2) * 1,
+          }}
+          ref={ref}
+        >
+          <ThreeBoard grid={grid} className="board" />
+        </div>
 
-        <ThreeBoard grid={grid} />
-        <Queue />
+        {/* <Board grid={grid} className=""></Board> */}
+
+        <div className="flex flex-col justify-between">
+          <Queue />
+
+          <div className="flex flex-col">
+            <button onClick={() => startGame()} className="mb-4">
+              Play
+            </button>
+            <button onClick={() => togglePauseGame()}>Pause</button>
+          </div>
+        </div>
       </div>
 
-      <button onClick={() => startGame()}>Start</button>
-      <button onClick={() => togglePauseGame()}>Pause</button>
+      <ControlButtons />
 
-      <p className="mt-4 text-sm uppercase">{score}</p>
+      {/* <p className="mt-4 text-sm uppercase">{score}</p>
       <p className="text-sm uppercase">{gameState}</p>
       <p className="text-sm uppercase">{tickSpeed}</p>
-      <p className="text-sm uppercase">{chainCount}</p>
+      <p className="text-sm uppercase">{chainCount}</p> */}
+
+      <style jsx>{`
+        .game {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          grid-template-rows: auto 1fr;
+        }
+
+        .board {
+        }
+      `}</style>
     </main>
   );
 };

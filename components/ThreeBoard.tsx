@@ -1,9 +1,11 @@
 import { Canvas, useThree } from '@react-three/fiber';
 import { motion } from 'framer-motion-3d';
 import {
+  Line,
   MeshDistortMaterial,
   MeshWobbleMaterial,
   OrthographicCamera,
+  QuadraticBezierLine,
   Sphere,
 } from '@react-three/drei';
 import { PuyoColour } from '../store/store';
@@ -11,82 +13,14 @@ import { PuyoType } from './Puyo';
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { getPuyoPosition, Grid, useStore } from '../store/store';
+// import useDimensions from 'react-use-dimensions';
+import useMeasure from 'react-use-measure';
+import { PuyoSphere } from './PuyoSphere';
 
 type Props = {
   grid: Grid;
   className?: string;
   // children: React.ReactNode;
-};
-
-type PuyoSphereProps = {
-  id: string;
-  colour: PuyoColour;
-  cellSize: number;
-  x?: number;
-  y?: number;
-  type?: PuyoType;
-};
-
-const colours = {
-  [PuyoColour.BLUE]: '#2563EB',
-  [PuyoColour.RED]: '#DC2626',
-  [PuyoColour.YELLOW]: '#CA8A04',
-  [PuyoColour.GREEN]: '#15803D',
-  [PuyoColour.PURPLE]: '#9333EA',
-};
-
-const PuyoSphere: React.FC<PuyoSphereProps> = ({
-  id,
-  colour,
-  cellSize,
-  x,
-  y,
-  type,
-}) => {
-  return (
-    <motion.mesh
-      key={id}
-      // visible // object gets render if true
-      // userData={{ test: 'hello' }} // An object that can be used to store custom data about the Object3d
-      position={[0, 0, 0]} // The position on the canvas of the object [x,y,x]
-      rotation={[0, 0, 0]} // The rotation of the object
-      castShadow // Sets whether or not the object cats a shadow
-      initial={{
-        x: -0.5,
-        y: 5,
-      }}
-      // There are many more props.....
-      animate={{
-        x: x / 40 - 1.9,
-        y: (y / 40 - 4.1) * -1,
-        scale: 1,
-      }}
-      exit={{
-        scale: 0.1,
-      }}
-    >
-      {/* A spherical shape*/}
-      {/* <sphereGeometry attach="geometry" args={[0.34, 16, 16]} /> */}
-      <Sphere visible args={[0.34, 16, 16]}>
-        <MeshWobbleMaterial
-          attach="material"
-          color={colours[colour]}
-          // factor={30} // Strength, 0 disables the effect (default=1)
-          // speed={2} // Speed (default=1)
-          roughness={0}
-        />
-      </Sphere>
-
-      {/* A standard mesh material*/}
-      {/* <meshStandardMaterial
-        attach="material" // How the element should attach itself to its parent
-        color={colours[colour]} // The color of the material
-        transparent // Defines whether this material is transparent. This has an effect on rendering as transparent objects need special treatment and are rendered after non-transparent objects. When set to true, the extent to which the material is transparent is controlled by setting it's .opacity property.
-        roughness={0.1} // The roughness of the material - Defaults to 1
-        metalness={0.1} // The metalness of the material - Defaults to 0
-      /> */}
-    </motion.mesh>
-  );
 };
 
 const devicePixelRatio =
@@ -96,18 +30,31 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   grid,
   className,
 }) => {
-  // const grid = useStore((store) => store.grid);
-  const cellSize = useStore((store) => store.cellSize);
   const puyos = useStore((store) => store.puyos);
   const userPuyoIds = useStore((store) => store.userPuyoIds);
   const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
+  const setCellSize = useStore((store) => store.setCellSize);
+  // const cellSize = useStore((store) => store.cellSize);
 
-  // console.log('render');
+  const [ref, { x, y, width }] = useMeasure();
+
+  const cellSize = width / 6;
+  React.useEffect(() => {
+    setCellSize(cellSize);
+  }, [cellSize]);
+
+  console.log(width);
+
+  // if (isNaN(width)) {
+  //   return null;
+  // }
 
   return (
     <div
       className={['relative', className || ''].join(' ')}
-      style={{ width: cellSize * 6, height: cellSize * 12 }}
+      // style={{ width: cellSize * 6, height: cellSize * 12 }}
+      style={{ height: isNaN(width) ? 'auto' : width * 2 }}
+      ref={ref}
     >
       <Canvas
         orthographic={true}
@@ -115,15 +62,36 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
           // near: 50,
           // far: 10000,
           // fov: 100,
-          zoom: 40,
+          zoom: 1,
           // near: 0.1, far: 10000,
-          // position: [8, 10, 10],
+          position: [0, 0, 100],
         }}
         dpr={devicePixelRatio}
+        // style={{
+        //   width: '100%',
+        //   // height: width * 2,
+        // }}
       >
         {/* <PuyoSphere id="test" colour={PuyoColour.GREEN} /> */}
         {/* <orthographicCamera args={[0, 0, 0, 0, 0, 0]} zoom={10} /> */}
         {/* <OrthographicCamera makeDefault /> */}
+
+        {/* <QuadraticBezierLine
+          start={[cellSize * -3, cellSize * 5, 0]}
+          end={[cellSize * -2, cellSize * 6, 0]}
+          color="white"
+        />
+        <QuadraticBezierLine
+          start={[cellSize * -2, cellSize * 6, 0]}
+          end={[cellSize * 2, cellSize * 6, 0]}
+          color="white"
+        />
+        <QuadraticBezierLine
+          start={[cellSize * 2, cellSize * 6, 0]}
+          end={[cellSize * 3, cellSize * 5, 0]}
+          color="white"
+        /> */}
+
         <AnimatePresence>
           {Object.entries(puyos).map(([id, puyo]) => {
             const [column, row] = getPuyoPosition(grid, id);
@@ -161,56 +129,34 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
           })}
         </AnimatePresence>
 
+        {/* <Line
+          points={[
+            [0, 0, 0],
+            [3 * cellSize, 0, 0],
+          ]} // Array of points
+          color="white" // Default
+          lineWidth={1} // In pixels (default)
+        />
+
+        <Line
+          points={[
+            [0, 0, 0],
+            [0, 320, 0],
+          ]} // Array of points
+          color="white" // Default
+          lineWidth={1} // In pixels (default)
+        /> */}
+
         {/*An ambient light that creates a soft light against the object */}
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={0.3} />
         {/*An directional light which aims form the given position */}
         <directionalLight position={[10, 10, 5]} intensity={1} />
         {/*An point light, basically the same as directional. This one points from under */}
         <pointLight position={[0, -10, 5]} intensity={1} />
       </Canvas>
-
-      {/* <div className="bg-slate-800">
-        {grid
-          // Hide top two rows for new puyos
-          .filter((row, r) => r > 1)
-          .map((columns, i) => {
-            return (
-              <div className="flex" key={i}>
-                {columns.map((column, j) => {
-                  return (
-                    <div
-                      key={j}
-                      className="outline outline-[0.5px] outline-slate-700"
-                      style={{
-                        width: cellSize,
-                        height: cellSize,
-                      }}
-                    ></div>
-                  );
-                })}
-              </div>
-            );
-          })}
-      </div> */}
     </div>
   );
 };
-
-// export const ThreeBoard = () => {
-//   return (
-//     <>
-//       <Canvas>
-//         <PuyoSphere id="test" colour={PuyoColour.GREEN} />
-//         {/*An ambient light that creates a soft light against the object */}
-//         <ambientLight intensity={0.5} />
-//         {/*An directional light which aims form the given position */}
-//         <directionalLight position={[10, 10, 5]} intensity={1} />
-//         {/*An point light, basically the same as directional. This one points from under */}
-//         <pointLight position={[0, -10, 5]} intensity={1} />
-//       </Canvas>
-//     </>
-//   );
-// };
 
 export function Material() {
   return <meshPhongMaterial color="#fff" specular="#61dafb" shininess={10} />;

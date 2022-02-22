@@ -43,6 +43,7 @@ const clearGrid = [
   [null, null, null, null, null, null],
   [null, null, null, null, null, null],
   [null, null, null, null, null, null],
+  // ['0', '1', '2', '3', '4', '5'],
   [null, null, null, null, null, null],
   [null, null, null, null, null, null],
   [null, null, null, null, null, null],
@@ -76,6 +77,8 @@ export type Store = {
   chainCount: number;
   startGame: () => void;
   togglePauseGame: () => void;
+  loseGame: () => void;
+  setCellSize: (cellSize: number) => void;
   movePuyos: (direction: MovePuyoDirection) => void;
   rotatePuyos: () => void;
   addPuyos: () => void;
@@ -83,7 +86,6 @@ export type Store = {
   landedPuyos: () => void;
   collapsePuyos: () => void;
   clearPuyos: () => void;
-  loseGame: () => void;
 };
 
 export const useStore = create<Store>((set) => ({
@@ -138,6 +140,12 @@ export const useStore = create<Store>((set) => ({
     set(() => {
       return {
         gameState: 'lose',
+      };
+    }),
+  setCellSize: (cellSize) =>
+    set(() => {
+      return {
+        cellSize,
       };
     }),
   addPuyos: () =>

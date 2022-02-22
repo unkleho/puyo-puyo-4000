@@ -1,5 +1,6 @@
 import { AnimatePresence } from 'framer-motion';
 import React from 'react';
+import useMeasure from 'react-use-measure';
 import { getPuyoPosition, Grid, useStore } from '../store/store';
 import { Puyo, PuyoType } from './Puyo';
 
@@ -11,15 +12,25 @@ type Props = {
 
 const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
   // const grid = useStore((store) => store.grid);
-  const cellSize = useStore((store) => store.cellSize);
+  // const cellSize = useStore((store) => store.cellSize);
   const puyos = useStore((store) => store.puyos);
   const userPuyoIds = useStore((store) => store.userPuyoIds);
   const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
+  const setCellSize = useStore((store) => store.setCellSize);
+  const [ref, { x, y, width }] = useMeasure();
 
-  // console.log('render');
+  const cellSize = width / 6;
+  React.useEffect(() => {
+    setCellSize(cellSize);
+  }, [cellSize]);
+
+  // console.log(width);
 
   return (
-    <div className={['relative', className || ''].join(' ')}>
+    <div
+      className={['relative overflow-hidden', className || ''].join(' ')}
+      ref={ref}
+    >
       <div className="bg-slate-800">
         {grid
           // Hide top two rows for new puyos

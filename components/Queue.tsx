@@ -1,13 +1,28 @@
 import { useStore } from '../store/store';
 import { Puyo } from './Puyo';
 
-export const Queue = () => {
+type Props = {
+  className?: string;
+};
+
+export const Queue: React.FC<Props> = ({ className }) => {
   const puyoIds = useStore((state) => state.nextPuyoIds);
   const puyos = useStore((state) => state.puyos);
-  const cellSize = useStore((state) => state.cellSize);
+  // const cellSize = useStore((state) => state.cellSize);
+
+  const cellSize = 40;
+
+  // if (isNaN(cellSize)) {
+  //   return null;
+  // }
 
   return (
-    <div className="relative">
+    <div
+      className={['relative', className || ''].join(' ')}
+      style={{
+        width: cellSize,
+      }}
+    >
       {puyoIds.map((id, index) => {
         const puyo = puyos[id];
         const gap = index >= 2 ? cellSize / 2 : 0;
