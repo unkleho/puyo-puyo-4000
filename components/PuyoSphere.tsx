@@ -27,6 +27,10 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
   y,
   type,
 }) => {
+  if (!x || !y) {
+    return null;
+  }
+
   return (
     <motion.mesh
       key={id}
@@ -45,8 +49,6 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
       // }}
       // There are many more props.....
       animate={{
-        // x: x / 40 - 1.9,
-        // y: (y / 40 - 4.1) * -1,
         x: x - cellSize * 2.5,
         y: (y - cellSize * 5.5) * -1,
         scale: 1,
