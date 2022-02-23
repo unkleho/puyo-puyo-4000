@@ -1,4 +1,4 @@
-import { Canvas, useThree } from '@react-three/fiber';
+import { Canvas, Dpr, useThree } from '@react-three/fiber';
 import { motion } from 'framer-motion-3d';
 import {
   Line,
@@ -66,7 +66,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
           // near: 0.1, far: 10000,
           position: [0, 0, 100],
         }}
-        dpr={devicePixelRatio}
+        dpr={devicePixelRatio as Dpr}
         // style={{
         //   width: '100%',
         //   // height: width * 2,
