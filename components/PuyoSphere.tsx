@@ -27,7 +27,7 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
   y,
   type,
 }) => {
-  if (!x || !y) {
+  if (x == null || y == null) {
     return null;
   }
 
