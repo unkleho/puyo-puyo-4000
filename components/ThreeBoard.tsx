@@ -17,7 +17,9 @@ import { getPuyoPosition, Grid, useStore } from '../store/store';
 import useMeasure from 'react-use-measure';
 import { PuyoSphere } from './PuyoSphere';
 
-type Props = {
+// codesandbox.io/s/el11e?file=/src/App.js:2033-2275
+
+https: type Props = {
   grid: Grid;
   className?: string;
   // children: React.ReactNode;
@@ -35,15 +37,25 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
   const setCellSize = useStore((store) => store.setCellSize);
   // const cellSize = useStore((store) => store.cellSize);
+  const screen = useStore((store) => store.screen);
 
-  const [ref, { x, y, width }] = useMeasure();
+  // const [ref, { x, y, width, height }] = useMeasure();
 
+  // const newWidth = height < width * 2 ? height / 2 : width;
+
+  const width =
+    screen.height - 170 < (screen.width - 90) * 2
+      ? (screen.height - 170) / 2
+      : screen.width - 90;
+  const height = width * 2;
   const cellSize = width / 6;
+
   React.useEffect(() => {
     setCellSize(cellSize);
   }, [cellSize]);
 
-  console.log(width);
+  // console.log('board', width, height);
+  // console.log('board new', newWidth, height);
 
   // if (isNaN(width)) {
   //   return null;
@@ -51,10 +63,22 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 
   return (
     <div
-      className={['relative', className || ''].join(' ')}
+      className={['relative border-zinc-800 bg-zinc-900', className || ''].join(
+        ' ',
+      )}
       // style={{ width: cellSize * 6, height: cellSize * 12 }}
-      style={{ height: isNaN(width) ? 'auto' : width * 2 }}
-      ref={ref}
+      // style={
+      //   {
+      //     // width: isNaN(newWidth) ? 'auto' : newWidth,
+      //     // height: isNaN(width) ? 'auto' : width * 2,
+      //   }
+      // }
+      style={{
+        width,
+        height,
+        borderRadius: (cellSize / 2) * 1,
+      }}
+      // ref={ref}
     >
       <Canvas
         orthographic={true}

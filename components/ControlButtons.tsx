@@ -10,7 +10,7 @@ export const ControlButtons = () => {
   const rotatePuyos = useStore((store) => store.rotatePuyos);
 
   return (
-    <div className="control-buttons gap-3">
+    <div className="control-buttons gap-2">
       <ControlButton className="col-start-2" onTouchStart={() => rotatePuyos()}>
         Rotate
       </ControlButton>
@@ -55,7 +55,7 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   return (
     <button
       className={[
-        'touch-manipulation bg-zinc-800 p-4 text-center',
+        'touch-manipulation bg-zinc-700 p-4 text-center',
         className || '',
       ].join(' ')}
       style={{

@@ -75,6 +75,11 @@ export type Store = {
   score: number;
   /** Temporary chain count between clear and collapse states, used to work out chain power & scoring */
   chainCount: number;
+  screen: {
+    width: number;
+    height: number;
+  };
+  setScreen: (width: number, height: number) => void;
   startGame: () => void;
   togglePauseGame: () => void;
   loseGame: () => void;
@@ -109,6 +114,18 @@ export const useStore = create<Store>((set) => ({
   score: 0,
   tempPuyoChains: [],
   chainCount: 0,
+  screen: {
+    width: 0,
+    height: 0,
+  },
+  setScreen: (width, height) =>
+    set(() => {
+      console.log(width, height);
+
+      return {
+        screen: { width, height },
+      };
+    }),
   startGame: () =>
     set(() => {
       const grid = cloneGrid(clearGrid);

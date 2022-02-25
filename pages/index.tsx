@@ -20,6 +20,7 @@ const Home: NextPage = () => {
   const chainCount = useStore((store) => store.chainCount);
   const cellSize = useStore((store) => store.cellSize);
   const setCellSize = useStore((store) => store.setCellSize);
+  const setScreen = useStore((store) => store.setScreen);
 
   const startGame = useStore((store) => store.startGame);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
@@ -32,7 +33,13 @@ const Home: NextPage = () => {
   const collapsePuyos = useStore((store) => store.collapsePuyos);
   const loseGame = useStore((store) => store.loseGame);
 
-  const [ref, { width }] = useMeasure();
+  const [ref, { width, height }] = useMeasure();
+
+  useEffect(() => {
+    setScreen(width, height);
+  }, [width, height, setScreen]);
+
+  // console.log('main', width, height);
 
   // Allow space for gaps and borders
   const boardGap = 4;
@@ -110,18 +117,9 @@ const Home: NextPage = () => {
   // console.log(gameState);
 
   return (
-    <main className={'h-full bg-zinc-900 p-4'}>
-      <div className="game gap-4">
-        <div
-          className="overflow-hidden border-zinc-800 bg-zinc-800"
-          style={{
-            // width: cellSize * 6,
-            // height: cellSize * 12,
-            // borderRadius: (cellSize / 2) * 1.3,
-            borderRadius: (cellSize / 2) * 1,
-          }}
-          ref={ref}
-        >
+    <main className={'h-full bg-zinc-800 p-4'} ref={ref}>
+      <div className="game h-full gap-4">
+        <div className="h-full overflow-hidden ">
           <ThreeBoard grid={grid} className="board" />
         </div>
 
@@ -137,9 +135,9 @@ const Home: NextPage = () => {
             <button onClick={() => togglePauseGame()}>Pause</button>
           </div>
         </div>
-      </div>
 
-      <ControlButtons />
+        <ControlButtons />
+      </div>
 
       {/* <p className="mt-4 text-sm uppercase">{score}</p>
       <p className="text-sm uppercase">{gameState}</p>
@@ -150,7 +148,7 @@ const Home: NextPage = () => {
         .game {
           display: grid;
           grid-template-columns: 1fr auto;
-          grid-template-rows: auto 1fr;
+          grid-template-rows: 1fr auto;
         }
 
         .board {
