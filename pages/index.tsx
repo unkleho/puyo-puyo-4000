@@ -6,6 +6,7 @@ import { ControlButtons } from '../components/ControlButtons';
 import { Queue } from '../components/Queue';
 import { ThreeBoard } from '../components/ThreeBoard';
 import { useKeyPress } from '../hooks/use-key-press';
+import { useWindowSize } from '../hooks/use-window-size';
 import { useStore } from '../store/store';
 
 const collapsePuyosTimeout = 300;
@@ -33,11 +34,15 @@ const Home: NextPage = () => {
   const collapsePuyos = useStore((store) => store.collapsePuyos);
   const loseGame = useStore((store) => store.loseGame);
 
-  const [ref, { width, height }] = useMeasure();
+  const windowSize = useWindowSize();
+
+  // const [ref, { width, height }] = useMeasure();
 
   useEffect(() => {
-    setScreen(width, height);
-  }, [width, height, setScreen]);
+    if (windowSize.width && windowSize.height) {
+      setScreen(windowSize.width, windowSize.height);
+    }
+  }, [windowSize.width, windowSize.height, setScreen]);
 
   // console.log('main', width, height);
 
@@ -117,7 +122,7 @@ const Home: NextPage = () => {
   // console.log(gameState);
 
   return (
-    <main className={'h-full bg-zinc-800 p-4'} ref={ref}>
+    <main className={'h-full bg-zinc-800 p-4'}>
       <div className="game h-full gap-4">
         <div className="h-full overflow-hidden ">
           <ThreeBoard grid={grid} className="board" />
