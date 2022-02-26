@@ -1,3 +1,4 @@
+import useDeviceDetect from '../hooks/use-device-detect';
 import { useStore } from '../store/store';
 import { Icon } from './Icon';
 
@@ -46,6 +47,7 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   onClick,
 }) => {
   const cellSize = useStore((store) => store.cellSize);
+  const isMobile = useDeviceDetect();
 
   return (
     <button
@@ -57,7 +59,9 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
         borderRadius: cellSize / 2,
       }}
       onClick={() => {
-        onClick?.();
+        if (!isMobile) {
+          onClick?.();
+        }
       }}
       onTouchStart={() => {
         onClick?.();

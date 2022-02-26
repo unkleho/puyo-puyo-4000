@@ -43,9 +43,11 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 
   // const newWidth = height < width * 2 ? height / 2 : width;
 
+  const heightAdjust = 180;
+
   const width =
-    screen.height - 170 < (screen.width - 90) * 2
-      ? (screen.height - 170) / 2
+    screen.height - heightAdjust < (screen.width - 90) * 2
+      ? (screen.height - heightAdjust) / 2
       : screen.width - 90;
   const height = width * 2;
   const cellSize = width / 6;
