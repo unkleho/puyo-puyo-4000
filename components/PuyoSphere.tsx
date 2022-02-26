@@ -51,7 +51,6 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
       animate={{
         x,
         y,
-        // y: (y - cellSize * 5.5) * -1,
         scale: 1,
       }}
       exit={{

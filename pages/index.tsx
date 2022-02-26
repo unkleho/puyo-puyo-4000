@@ -1,9 +1,8 @@
 import type { NextPage } from 'next';
 import React, { useEffect } from 'react';
-import useMeasure from 'react-use-measure';
 import { MemoBoard as Board } from '../components/Board';
 import { ControlButtons } from '../components/ControlButtons';
-import { Queue } from '../components/Queue';
+// import { Queue } from '../components/Queue';
 import { ThreeBoard } from '../components/ThreeBoard';
 import { ThreeQueue } from '../components/ThreeQueue';
 import { useKeyPress } from '../hooks/use-key-press';
@@ -36,8 +35,7 @@ const Home: NextPage = () => {
   const loseGame = useStore((store) => store.loseGame);
 
   const windowSize = useWindowSize();
-
-  // const [ref, { width, height }] = useMeasure();
+  // iPhone Mini Viewport 375 x 610
 
   useEffect(() => {
     if (windowSize.width && windowSize.height) {
@@ -125,8 +123,8 @@ const Home: NextPage = () => {
   return (
     <main className={'h-full bg-stone-900 p-4'}>
       <div className="game h-full gap-4">
-        <div className="flex justify-center">
-          <div className="h-full overflow-hidden border border-stone-700">
+        <div className="flex">
+          <div className="h-full overflow-hidden">
             <ThreeBoard grid={grid} className="board" />
           </div>
 
@@ -134,7 +132,7 @@ const Home: NextPage = () => {
 
           <div className="ml-4 flex flex-col justify-between">
             {/* <Queue /> */}
-            <ThreeQueue className="border-t border-b border-stone-700" />
+            <ThreeQueue className="mr-4 border-t border-b border-stone-700" />
 
             <div className="flex flex-col">
               {gameState === 'idle' ||
@@ -153,12 +151,20 @@ const Home: NextPage = () => {
               )}
             </div>
           </div>
-        </div>
 
-        <div className="mb-1">
-          <p className="text-center text-xl font-extrabold uppercase leading-none tracking-wider">
-            {score}
-          </p>
+          <div className="ml-4 flex flex-1 flex-col ">
+            <h1 className="uppercase leading-none tracking-widest">
+              Puyo Puyo
+            </h1>
+            <p
+              className="mt-auto h-12 border-l border-stone-700 text-right text-3xl font-normal uppercase leading-none tracking-wider"
+              style={{
+                writingMode: 'vertical-rl',
+              }}
+            >
+              {score}
+            </p>
+          </div>
         </div>
 
         <ControlButtons />
@@ -174,9 +180,6 @@ const Home: NextPage = () => {
           display: grid;
           grid-template-columns: 1fr;
           grid-template-rows: 1fr auto;
-        }
-
-        .board {
         }
       `}</style>
     </main>

@@ -39,7 +39,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const screen = useStore((store) => store.screen);
 
   const widthAdjust = 90;
-  const heightAdjust = 220;
+  const heightAdjust = 190;
 
   // Calculate width/height of board based on screen size and surrounding ui
   const width =
@@ -55,7 +55,10 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 
   return (
     <div
-      className={['relative bg-stone-900', className || ''].join(' ')}
+      className={[
+        'relative border border-stone-700 bg-stone-900',
+        className || '',
+      ].join(' ')}
       style={{
         width,
         height,
