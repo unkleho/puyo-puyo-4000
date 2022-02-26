@@ -48,9 +48,9 @@ const Home: NextPage = () => {
   // console.log('main', width, height);
 
   // Allow space for gaps and borders
-  const boardGap = 4;
-  const gridGap = 0;
-  const totalGap = boardGap * 4 + gridGap;
+  // const boardGap = 4;
+  // const gridGap = 0;
+  // const totalGap = boardGap * 4 + gridGap;
   // const cellSize = (width - totalGap) / 7;
   // React.useEffect(() => {
   //   setCellSize(cellSize);
@@ -126,7 +126,7 @@ const Home: NextPage = () => {
     <main className={'h-full bg-stone-900 p-4'}>
       <div className="game h-full gap-4">
         <div className="flex justify-center">
-          <div className="h-full overflow-hidden border-2 border-stone-700">
+          <div className="h-full overflow-hidden border border-stone-700">
             <ThreeBoard grid={grid} className="board" />
           </div>
 
@@ -134,7 +134,7 @@ const Home: NextPage = () => {
 
           <div className="ml-4 flex flex-col justify-between">
             {/* <Queue /> */}
-            <ThreeQueue className="border-t-2 border-b-2 border-stone-700" />
+            <ThreeQueue className="border-t border-b border-stone-700" />
 
             <div className="flex flex-col">
               {gameState === 'idle' ||
@@ -156,7 +156,7 @@ const Home: NextPage = () => {
         </div>
 
         <div className="mb-1">
-          <p className="text-center text-3xl font-bold uppercase  leading-none">
+          <p className="text-center text-xl font-extrabold uppercase leading-none tracking-wider">
             {score}
           </p>
         </div>

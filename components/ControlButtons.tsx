@@ -52,7 +52,7 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   return (
     <button
       className={[
-        'flex touch-manipulation select-none items-center justify-center border-t-2  border-stone-700 bg-stone-900 p-4 text-center active:bg-stone-700',
+        'flex touch-manipulation select-none items-center justify-center border-t  border-stone-700 bg-stone-900 p-4 text-center active:bg-stone-700',
         className || '',
       ].join(' ')}
       // style={{
