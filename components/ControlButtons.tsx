@@ -12,7 +12,7 @@ export const ControlButtons = () => {
   const rotatePuyos = useStore((store) => store.rotatePuyos);
 
   return (
-    <div className="control-buttons gap-1">
+    <div className="control-buttons gap-2">
       <ControlButton
         className="col-span-3 col-start-1"
         onClick={() => rotatePuyos()}
@@ -46,18 +46,18 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   children,
   onClick,
 }) => {
-  const cellSize = useStore((store) => store.cellSize);
+  // const cellSize = useStore((store) => store.cellSize);
   const isMobile = useDeviceDetect();
 
   return (
     <button
       className={[
-        'flex touch-manipulation select-none items-center justify-center border border-zinc-700 bg-zinc-800 p-4 text-center active:bg-zinc-700',
+        'flex touch-manipulation select-none items-center justify-center border-t-2  border-stone-700 bg-stone-900 p-4 text-center active:bg-stone-700',
         className || '',
       ].join(' ')}
-      style={{
-        borderRadius: cellSize / 2,
-      }}
+      // style={{
+      //   borderRadius: cellSize / 2,
+      // }}
       onClick={() => {
         if (!isMobile) {
           onClick?.();

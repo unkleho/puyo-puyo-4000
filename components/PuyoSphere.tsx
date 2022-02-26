@@ -49,8 +49,9 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
       // }}
       // There are many more props.....
       animate={{
-        x: x - cellSize * 2.5,
-        y: (y - cellSize * 5.5) * -1,
+        x,
+        y,
+        // y: (y - cellSize * 5.5) * -1,
         scale: 1,
       }}
       exit={{

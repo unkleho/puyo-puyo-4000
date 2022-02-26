@@ -36,51 +36,34 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const userPuyoIds = useStore((store) => store.userPuyoIds);
   const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
   const setCellSize = useStore((store) => store.setCellSize);
-  // const cellSize = useStore((store) => store.cellSize);
   const screen = useStore((store) => store.screen);
 
-  // const [ref, { x, y, width, height }] = useMeasure();
+  const widthAdjust = 90;
+  const heightAdjust = 230;
 
-  // const newWidth = height < width * 2 ? height / 2 : width;
-
-  const heightAdjust = 180;
-
+  // Calculate width/height of board based on screen size and surrounding ui
   const width =
-    screen.height - heightAdjust < (screen.width - 90) * 2
+    screen.height - heightAdjust < (screen.width - widthAdjust) * 2
       ? (screen.height - heightAdjust) / 2
-      : screen.width - 90;
+      : screen.width - widthAdjust;
   const height = width * 2;
   const cellSize = width / 6;
 
   React.useEffect(() => {
     setCellSize(cellSize);
-  }, [cellSize]);
-
-  // console.log('board', width, height);
-  // console.log('board new', newWidth, height);
-
-  // if (isNaN(width)) {
-  //   return null;
-  // }
+  }, [cellSize, setCellSize]);
 
   return (
     <div
-      className={['relative border-zinc-800 bg-zinc-900', className || ''].join(
-        ' ',
-      )}
-      // style={{ width: cellSize * 6, height: cellSize * 12 }}
-      // style={
-      //   {
-      //     // width: isNaN(newWidth) ? 'auto' : newWidth,
-      //     // height: isNaN(width) ? 'auto' : width * 2,
-      //   }
-      // }
+      className={[
+        'relative border-stone-800 bg-stone-900',
+        className || '',
+      ].join(' ')}
       style={{
         width,
         height,
-        borderRadius: (cellSize / 2) * 1,
+        // borderRadius: (cellSize / 2) * 1,
       }}
-      // ref={ref}
     >
       <Canvas
         orthographic={true}
@@ -135,6 +118,9 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
                 type = 'board';
               }
 
+              const x = column * cellSize - cellSize * 2.5;
+              const y = (newRow * cellSize - cellSize * 5.5) * -1;
+
               // Hide top two rows for new puyos
               if (row > 1) {
                 return (
@@ -143,8 +129,8 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
                     key={id}
                     colour={puyo.colour}
                     cellSize={cellSize}
-                    x={column * cellSize}
-                    y={newRow * cellSize}
+                    x={x}
+                    y={y}
                     type={type}
                   />
                 );

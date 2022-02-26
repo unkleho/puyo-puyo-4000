@@ -5,6 +5,7 @@ import { MemoBoard as Board } from '../components/Board';
 import { ControlButtons } from '../components/ControlButtons';
 import { Queue } from '../components/Queue';
 import { ThreeBoard } from '../components/ThreeBoard';
+import { ThreeQueue } from '../components/ThreeQueue';
 import { useKeyPress } from '../hooks/use-key-press';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useStore } from '../store/store';
@@ -122,31 +123,48 @@ const Home: NextPage = () => {
   // console.log(gameState);
 
   return (
-    <main className={'h-full bg-zinc-800 p-4'}>
+    <main className={'h-full bg-stone-900 p-4'}>
       <div className="game h-full gap-4">
         <div className="flex justify-center">
-          <div className="h-full overflow-hidden ">
+          <div className="h-full overflow-hidden border-2 border-stone-700">
             <ThreeBoard grid={grid} className="board" />
           </div>
 
           {/* <Board grid={grid} className=""></Board> */}
 
           <div className="ml-4 flex flex-col justify-between">
-            <Queue />
+            {/* <Queue /> */}
+            <ThreeQueue className="border-t-2 border-b-2 border-stone-700" />
 
             <div className="flex flex-col">
-              <button onClick={() => startGame()} className="mb-4">
-                Play
-              </button>
-              <button onClick={() => togglePauseGame()}>Pause</button>
+              {gameState === 'idle' ||
+              gameState === 'paused' ||
+              gameState === 'lose' ? (
+                <button
+                  onClick={() => startGame()}
+                  className="uppercase tracking-wider"
+                >
+                  Play
+                </button>
+              ) : (
+                <button onClick={() => togglePauseGame()} className="uppercase">
+                  Pause
+                </button>
+              )}
             </div>
           </div>
+        </div>
+
+        <div className="mb-1">
+          <p className="text-center text-3xl font-bold uppercase  leading-none">
+            {score}
+          </p>
         </div>
 
         <ControlButtons />
       </div>
 
-      {/* <p className="mt-4 text-sm uppercase">{score}</p>
+      {/* 
       <p className="text-sm uppercase">{gameState}</p>
       <p className="text-sm uppercase">{tickSpeed}</p>
       <p className="text-sm uppercase">{chainCount}</p> */}

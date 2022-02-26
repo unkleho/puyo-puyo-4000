@@ -31,7 +31,7 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
       className={['relative overflow-hidden', className || ''].join(' ')}
       ref={ref}
     >
-      <div className="bg-slate-800">
+      <div className="bg-stone-800">
         {grid
           // Hide top two rows for new puyos
           .filter((row, r) => r > 1)
@@ -42,7 +42,7 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
                   return (
                     <div
                       key={j}
-                      className="outline outline-[0.5px] outline-slate-700"
+                      className="outline outline-[0.5px] outline-stone-700"
                       style={{
                         width: cellSize,
                         height: cellSize,
