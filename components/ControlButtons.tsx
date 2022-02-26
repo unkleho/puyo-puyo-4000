@@ -1,8 +1,9 @@
 import { useStore } from '../store/store';
+import { Icon } from './Icon';
 
 type ControlButtonProps = {
   className?: string;
-  onTouchStart?: Function;
+  onClick?: Function;
 };
 
 export const ControlButtons = () => {
@@ -15,17 +16,17 @@ export const ControlButtons = () => {
         className="col-span-3 col-start-1"
         onClick={() => rotatePuyos()}
       >
-        Rotate
+        <Icon name="rotate" />
       </ControlButton>
 
       <ControlButton className="row-start-2" onClick={() => movePuyos('left')}>
-        Left
+        <Icon name="left" />
       </ControlButton>
       <ControlButton className="row-start-2" onClick={() => movePuyos('down')}>
-        Down
+        <Icon name="down" />
       </ControlButton>
       <ControlButton className="row-start-2" onClick={() => movePuyos('right')}>
-        Right
+        <Icon name="right" />
       </ControlButton>
 
       <style jsx>{`
@@ -49,7 +50,7 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   return (
     <button
       className={[
-        'touch-manipulation select-none bg-zinc-700 p-4 text-center',
+        'flex touch-manipulation select-none items-center justify-center border border-zinc-700 bg-zinc-800 p-4 text-center active:bg-zinc-700',
         className || '',
       ].join(' ')}
       style={{

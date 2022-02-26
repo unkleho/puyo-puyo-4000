@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
+
+  <symbol id="right">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="48"
+      d="M184 112l144 144-144 144"
+    />
+  </symbol>
+
+  <symbol id="left">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="48"
+      d="M328 112L184 256l144 144"
+    />  
+  </symbol>
+
+  <symbol id="down">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="48"
+      d="M112 184l144 144 144-144"
+    />
+  </symbol>
+
+  <symbol id="rotate">
+    <path
+      d="M320 146s24.36-12-64-12a160 160 0 10160 160"
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-miterlimit="10"
+      stroke-width="32"
+    /><path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="32"
+      d="M256 58l80 80-80 80"
+    />  
+  </symbol>
+</svg>
