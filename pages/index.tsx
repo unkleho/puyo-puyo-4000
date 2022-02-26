@@ -124,20 +124,22 @@ const Home: NextPage = () => {
   return (
     <main className={'h-full bg-zinc-800 p-4'}>
       <div className="game h-full gap-4">
-        <div className="h-full overflow-hidden ">
-          <ThreeBoard grid={grid} className="board" />
-        </div>
+        <div className="flex justify-center">
+          <div className="h-full overflow-hidden ">
+            <ThreeBoard grid={grid} className="board" />
+          </div>
 
-        {/* <Board grid={grid} className=""></Board> */}
+          {/* <Board grid={grid} className=""></Board> */}
 
-        <div className="flex flex-col justify-between">
-          <Queue />
+          <div className="ml-4 flex flex-col justify-between">
+            <Queue />
 
-          <div className="flex flex-col">
-            <button onClick={() => startGame()} className="mb-4">
-              Play
-            </button>
-            <button onClick={() => togglePauseGame()}>Pause</button>
+            <div className="flex flex-col">
+              <button onClick={() => startGame()} className="mb-4">
+                Play
+              </button>
+              <button onClick={() => togglePauseGame()}>Pause</button>
+            </div>
           </div>
         </div>
 
@@ -152,7 +154,7 @@ const Home: NextPage = () => {
       <style jsx>{`
         .game {
           display: grid;
-          grid-template-columns: 1fr auto;
+          grid-template-columns: 1fr;
           grid-template-rows: 1fr auto;
         }
 

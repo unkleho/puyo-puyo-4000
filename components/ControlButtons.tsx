@@ -10,27 +10,21 @@ export const ControlButtons = () => {
   const rotatePuyos = useStore((store) => store.rotatePuyos);
 
   return (
-    <div className="control-buttons gap-2">
-      <ControlButton className="col-start-2" onTouchStart={() => rotatePuyos()}>
+    <div className="control-buttons gap-1">
+      <ControlButton
+        className="col-span-3 col-start-1"
+        onClick={() => rotatePuyos()}
+      >
         Rotate
       </ControlButton>
 
-      <ControlButton
-        className="row-start-2"
-        onTouchStart={() => movePuyos('left')}
-      >
+      <ControlButton className="row-start-2" onClick={() => movePuyos('left')}>
         Left
       </ControlButton>
-      <ControlButton
-        className="row-start-2"
-        onTouchStart={() => movePuyos('down')}
-      >
+      <ControlButton className="row-start-2" onClick={() => movePuyos('down')}>
         Down
       </ControlButton>
-      <ControlButton
-        className="row-start-2"
-        onTouchStart={() => movePuyos('right')}
-      >
+      <ControlButton className="row-start-2" onClick={() => movePuyos('right')}>
         Right
       </ControlButton>
 
@@ -48,7 +42,7 @@ export const ControlButtons = () => {
 const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   className,
   children,
-  onTouchStart,
+  onClick,
 }) => {
   const cellSize = useStore((store) => store.cellSize);
 
@@ -61,7 +55,12 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
       style={{
         borderRadius: cellSize / 2,
       }}
-      onTouchStart={() => onTouchStart?.()}
+      onClick={() => {
+        onClick?.();
+      }}
+      onTouchStart={() => {
+        onClick?.();
+      }}
     >
       {children}
     </button>

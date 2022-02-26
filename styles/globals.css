@@ -15,7 +15,7 @@ body,
 #__next {
   height: 100%;
 
-  @apply text-slate-400;
+  @apply bg-zinc-800 text-slate-400;
 }
 
 /* https://allthingssmitty.com/2020/05/11/css-fix-for-100vh-in-mobile-webkit/ */
