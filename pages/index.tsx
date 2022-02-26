@@ -152,12 +152,12 @@ const Home: NextPage = () => {
             </div>
           </div>
 
-          <div className="ml-4 flex flex-1 flex-col ">
-            <h1 className="uppercase leading-none tracking-widest">
+          <div className="ml-3 flex flex-1 flex-col ">
+            <h1 className="text-right uppercase leading-none tracking-widest">
               Puyo Puyo
             </h1>
             <p
-              className="mt-auto h-12 border-l border-stone-700 text-right text-3xl font-normal uppercase leading-none tracking-wider"
+              className="mt-auto border-l border-stone-700 text-right text-3xl font-normal uppercase leading-none tracking-wider"
               style={{
                 writingMode: 'vertical-rl',
               }}
