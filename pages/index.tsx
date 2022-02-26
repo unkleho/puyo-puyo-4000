@@ -152,8 +152,8 @@ const Home: NextPage = () => {
             </div>
           </div>
 
-          <div className="ml-3 flex flex-1 flex-col ">
-            <h1 className="text-right uppercase leading-none tracking-widest">
+          <div className="ml-2 flex flex-1 flex-col">
+            <h1 className="mt-[-0.2em] text-right uppercase leading-none tracking-widest">
               Puyo Puyo
             </h1>
             <p
