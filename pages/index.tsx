@@ -110,7 +110,7 @@ const Home: NextPage = () => {
   ]);
 
   return (
-    <main className={'h-full bg-stone-900 p-4 md:flex md:justify-center'}>
+    <main className={'h-full  bg-stone-900 p-4 md:flex md:justify-center'}>
       <div className="game h-full gap-4">
         <div className="flex md:justify-center">
           <div className="h-full overflow-hidden">
@@ -164,14 +164,14 @@ const Home: NextPage = () => {
               Puyo Puyo
             </h1>
             <p
-              className="mt-auto text-right font-normal uppercase leading-none tracking-wider"
+              className="mt-auto flex text-right font-normal uppercase leading-none tracking-wider"
               style={{
                 writingMode: 'vertical-rl',
               }}
             >
-              <span className="-mr-5 inline-block text-xs">Score</span>
+              <span className="inline-block text-xs leading-none">Score</span>
               <span
-                className="mb-0 -mr-2 inline-block text-3xl font-semibold tabular-nums"
+                className="mb-0 inline-block translate-x-1 text-3xl font-semibold tabular-nums leading-none"
                 style={{
                   minHeight: '7rem',
                 }}

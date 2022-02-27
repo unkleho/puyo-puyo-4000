@@ -14,26 +14,34 @@ export const ControlButtons = () => {
   return (
     <div className="control-buttons gap-2">
       <ControlButton
-        className="col-span-3 col-start-1"
+        className="col-span-1 col-start-2"
         onClick={() => rotatePuyos()}
       >
         <Icon name="rotate" />
       </ControlButton>
 
-      <ControlButton className="row-start-2" onClick={() => movePuyos('left')}>
+      <ControlButton
+        className="row-span-2 row-start-1"
+        onClick={() => movePuyos('left')}
+      >
         <Icon name="left" />
       </ControlButton>
+
       <ControlButton className="row-start-2" onClick={() => movePuyos('down')}>
         <Icon name="down" />
       </ControlButton>
-      <ControlButton className="row-start-2" onClick={() => movePuyos('right')}>
+
+      <ControlButton
+        className="row-span-2 row-start-1"
+        onClick={() => movePuyos('right')}
+      >
         <Icon name="right" />
       </ControlButton>
 
       <style jsx>{`
         .control-buttons {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
+          grid-template-columns: 1fr 2fr 1fr;
           grid-template-rows: 1fr 1fr;
         }
       `}</style>
