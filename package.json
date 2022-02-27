@@ -21,6 +21,7 @@
     "react-use-measure": "^2.1.1",
     "sass": "^1.49.9",
     "three": "^0.137.5",
+    "use-count-up": "^3.0.1",
     "zustand": "^3.6.9"
   },
   "devDependencies": {

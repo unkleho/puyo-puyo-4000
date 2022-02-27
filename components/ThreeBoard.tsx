@@ -15,7 +15,7 @@ import { AnimatePresence } from 'framer-motion';
 import { getPuyoPosition, Grid, useStore } from '../store/store';
 // import useDimensions from 'react-use-dimensions';
 import useMeasure from 'react-use-measure';
-import { PuyoSphere } from './PuyoSphere';
+import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
 
 // https://codesandbox.io/s/el11e?file=/src/App.js:2033-2275
 
@@ -41,6 +41,12 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
   const setCellSize = useStore((store) => store.setCellSize);
   const screen = useStore((store) => store.screen);
+
+  // console.log(puyoIdsToClear);
+
+  // if (getPuyoPosition(grid, puyoIdsToClear[0])) {
+  //   console.log(getPuyoPosition(grid, puyoIdsToClear[0]), puyoIdsToClear);
+  // }
 
   const boardPadding = 10;
 
@@ -83,7 +89,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         }}
         dpr={devicePixelRatio as Dpr}
       >
-        <AnimatePresence>
+        <PuyoSphereAnimatePresence>
           {Object.entries(puyos).map(([id, puyo]) => {
             const [column, row] = getPuyoPosition(grid, id);
 
@@ -92,9 +98,11 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
               const newRow = row - 2;
 
               let type: PuyoType;
-              if (puyoIdsToClear.includes(id)) {
-                type = 'to-clear';
-              } else if (userPuyoIds.includes(id)) {
+              // if (puyoIdsToClear.find((ids) => ids.includes(id))) {
+              // This is already done in PuyoSphereAnimatePresence
+              // type = 'to-clear';
+              // } else
+              if (userPuyoIds.includes(id)) {
                 type = 'user';
               } else {
                 type = 'board';
@@ -113,6 +121,8 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
                     cellSize={cellSize}
                     x={x}
                     y={y}
+                    initialX={cellSize * -0.5}
+                    initialY={cellSize * 6}
                     type={type}
                   />
                 );
@@ -121,7 +131,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 
             return null;
           })}
-        </AnimatePresence>
+        </PuyoSphereAnimatePresence>
 
         {[...new Array(11)].map((_, i) => {
           const y = i * cellSize - cellSize * 5;
@@ -154,7 +164,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         })}
 
         {/*An ambient light that creates a soft light against the object */}
-        <ambientLight intensity={0.3} />
+        <ambientLight intensity={0.4} />
         {/*An directional light which aims form the given position */}
         <directionalLight position={[10, 10, 5]} intensity={1} />
         {/*An point light, basically the same as directional. This one points from under */}

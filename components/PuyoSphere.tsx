@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion-3d';
+import React from 'react';
+import { usePrevious } from '../hooks/use-previous';
 import { PuyoColour } from '../store/store';
 import { PuyoType } from './Puyo';
 
@@ -8,6 +10,8 @@ type PuyoSphereProps = {
   cellSize: number;
   x?: number;
   y?: number;
+  initialX?: number;
+  initialY?: number;
   type?: PuyoType;
 };
 
@@ -25,6 +29,8 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
   cellSize,
   x,
   y,
+  initialX,
+  initialY,
   type,
 }) => {
   if (x == null || y == null) {
@@ -34,28 +40,26 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
   return (
     <motion.mesh
       key={id}
-      // visible // object gets render if true
-      // userData={{ test: 'hello' }} // An object that can be used to store custom data about the Object3d
       position={[0, 0, 0]} // The position on the canvas of the object [x,y,x]
       rotation={[0, 0, 0]} // The rotation of the object
       castShadow // Sets whether or not the object cats a shadow
       initial={{
-        x: cellSize * -0.5,
-        y: cellSize * 6,
+        x: initialX,
+        y: initialY,
       }}
-      // initial={{
-      //   x: -0.5,
-      //   y: 5,
-      // }}
-      // There are many more props.....
       animate={{
         x,
         y,
-        scale: 1,
+        scale: type === 'to-clear' ? 0.005 : 1,
       }}
-      exit={{
-        scale: 0.1,
-      }}
+      // transition={{
+      //   type: 'tween',
+      //   duration: 1,
+      // }}
+      // Exit not working with framer-motion-3d
+      // exit={{
+      //   scale: 0.1,
+      // }}
     >
       {/* A spherical shape*/}
       <sphereGeometry attach="geometry" args={[(cellSize / 2) * 0.9, 16, 16]} />
@@ -78,5 +82,49 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
         metalness={0.1} // The metalness of the material - Defaults to 0
       />
     </motion.mesh>
+  );
+};
+
+// Cut price version of framer-motion's AnimatePresence for PuyoSphere
+// This is an abstraction for animating out cleared PuyoSpheres
+export const PuyoSphereAnimatePresence: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const currentKeys: string[] = [];
+  const currentChildren = React.Children.map(children, (child: any) => {
+    if (child) {
+      currentKeys.push('.$' + child.key);
+    }
+    return child;
+  });
+  const prevChildren = usePrevious(currentChildren);
+
+  return (
+    <>
+      {prevChildren
+        ?.filter((child: any) => {
+          // Only show prev children that don't exist anymore
+          // console.log(child.key);
+          return !currentKeys.includes(child.key);
+        })
+        .map((child: any) => {
+          if (typeof child === 'object') {
+            return child.type({
+              ...child.props,
+              initialX: child.props.x,
+              initialY: child.props.y,
+              type: 'to-clear',
+            });
+          }
+        })}
+
+      {currentChildren?.map((child: any) => {
+        // console.log(child);
+
+        if (typeof child === 'object') {
+          return child.type(child.props);
+        }
+      })}
+    </>
   );
 };

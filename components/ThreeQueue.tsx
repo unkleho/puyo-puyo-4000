@@ -1,7 +1,9 @@
 import { Canvas, Dpr } from '@react-three/fiber';
-import { useStore } from '../store/store';
+import React from 'react';
+import { usePrevious } from '../hooks/use-previous';
+import { PuyoColour, useStore } from '../store/store';
 import { Puyo } from './Puyo';
-import { PuyoSphere } from './PuyoSphere';
+import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
 
 type Props = {
   className?: string;
@@ -15,6 +17,14 @@ export const ThreeQueue: React.FC<Props> = ({ className }) => {
   const puyos = useStore((state) => state.puyos);
   const cellSize = useStore((state) => state.cellSize);
 
+  // Work out puyos that were removed from queue and put into board
+  const prevPuyoIds: string[] = usePrevious(puyoIds);
+  const prevPuyoIdsToRemove = prevPuyoIds?.filter(
+    (id) => !puyoIds.includes(id),
+  );
+  const puyosToRemove = prevPuyoIdsToRemove?.map((id) => puyos[id]);
+  // console.log(puyosToRemove);
+
   // if (isNaN(cellSize)) {
   //   return null;
   // }
@@ -24,7 +34,7 @@ export const ThreeQueue: React.FC<Props> = ({ className }) => {
       className={['relative', className || ''].join(' ')}
       style={{
         width: cellSize,
-        height: cellSize * 4,
+        height: cellSize * 4 + 5,
       }}
     >
       <Canvas
@@ -35,31 +45,34 @@ export const ThreeQueue: React.FC<Props> = ({ className }) => {
         }}
         dpr={devicePixelRatio as Dpr}
       >
-        {puyoIds.map((id, index) => {
-          const puyo = puyos[id];
-          const puyoSet: 'first' | 'second' = index >= 2 ? 'second' : 'first';
-          const newCellSize =
-            puyoSet === 'second' ? cellSize * 0.7 : cellSize * 0.8;
-          const y =
-            (puyoIds.length - 1 - index) * newCellSize - newCellSize * 1.5;
-          const gap = puyoSet === 'second' ? newCellSize / 2 : cellSize * -0.2;
+        <PuyoSphereAnimatePresence>
+          {puyoIds.map((id, index) => {
+            const puyo = puyos[id];
+            const puyoSet: 'first' | 'second' = index >= 2 ? 'second' : 'first';
+            const newCellSize =
+              puyoSet === 'second' ? cellSize * 0.7 : cellSize * 0.8;
+            const y =
+              (puyoIds.length - 1 - index) * newCellSize - newCellSize * 1.5;
+            const gap =
+              puyoSet === 'second' ? newCellSize / 2 : cellSize * -0.2;
 
-          return (
-            <PuyoSphere
-              id={id}
-              colour={puyo.colour}
-              cellSize={newCellSize}
-              x={0}
-              // x={puyoSet === 'second' ? cellSize * 0.1 : 0}
-              y={y - gap}
-              // y={index * cellSize + gap}
-              key={id}
-            />
-          );
-        })}
+            return (
+              <PuyoSphere
+                id={id}
+                colour={puyo.colour}
+                cellSize={newCellSize}
+                x={0}
+                y={y - gap}
+                initialX={0}
+                initialY={cellSize * -3}
+                key={id}
+              />
+            );
+          })}
+        </PuyoSphereAnimatePresence>
 
         {/*An ambient light that creates a soft light against the object */}
-        <ambientLight intensity={0.3} />
+        <ambientLight intensity={0.4} />
         {/*An directional light which aims form the given position */}
         <directionalLight position={[10, 10, 5]} intensity={1} />
         {/*An point light, basically the same as directional. This one points from under */}

@@ -62,12 +62,13 @@ export type Store = {
   columns: number;
   rows: number;
   grid: Grid;
+  /**  TODO: Clean up puyos as they just keep expanding, which could lead to memory issues */
   puyos: Puyos;
   /** Two user controlled puyos, 2nd one rotates around 1st */
   userPuyoIds: [string, string];
   nextPuyoIds: string[];
   /** Puyos about to be cleared */
-  puyoIdsToClear: string[];
+  puyoIdsToClear: string[][];
   /** Width and height of grid cell */
   cellSize: number;
   /** Time between puyo moves in milliseconds */
@@ -409,6 +410,8 @@ export const useStore = create<Store>((set) => ({
       const [clearedGrid, puyoIdsToClear] = clearPuyos(state.grid, state.puyos);
       const hasGridCleared = !isGridEqual(clearedGrid, state.grid);
 
+      // console.log(getPuyoPosition(state.grid, puyoIdsToClear[0][0]));
+
       if (hasGridCleared) {
         return {
           gameState: 'clear-puyos',
@@ -441,13 +444,12 @@ export const useStore = create<Store>((set) => ({
         puyoIds.map((puyoId) => state.puyos[puyoId].colour),
       );
 
-      // console.log('clearPuyos', puyoChains);
-
       // If there are puyos cleared, collapse puyos and keep track of chains
       if (totalCount) {
         return {
           grid,
           gameState: 'collapse-puyos',
+          puyoIdsToClear: clearedPuyoIdGroups,
           score: state.score + getScore(state.chainCount + 1, puyoChains),
           chainCount: state.chainCount + 1,
         };
@@ -461,6 +463,7 @@ export const useStore = create<Store>((set) => ({
         gameState: 'add-puyos',
         score: state.score,
         chainCount: 0,
+        puyoIdsToClear: [],
       };
     }),
 }));
@@ -468,6 +471,7 @@ export const useStore = create<Store>((set) => ({
 function createRandomPuyo(): Puyo {
   return {
     colour: puyoColours[Math.floor(Math.random() * puyoColours.length)],
+    // colour: puyoColours[0],
   };
 }
 

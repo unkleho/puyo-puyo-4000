@@ -4,6 +4,7 @@ import { MemoBoard as Board } from '../components/Board';
 import { ButtonIcon } from '../components/ButtonIcon';
 import { ControlButtons } from '../components/ControlButtons';
 import { Icon } from '../components/Icon';
+import { Score } from '../components/Score';
 // import { Queue } from '../components/Queue';
 import { ThreeBoard } from '../components/ThreeBoard';
 import { ThreeQueue } from '../components/ThreeQueue';
@@ -172,12 +173,12 @@ const Home: NextPage = () => {
             >
               <span className="-mr-5 inline-block text-xs">Score</span>
               <span
-                className="mb-0 -mr-2 inline-block text-3xl font-semibold"
+                className="mb-0 -mr-2 inline-block text-3xl font-semibold tabular-nums"
                 style={{
                   minHeight: '7rem',
                 }}
               >
-                {score}
+                <Score score={score} />
               </span>
             </p>
           </div>
