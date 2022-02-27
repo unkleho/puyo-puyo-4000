@@ -7,24 +7,19 @@ import { Puyo, PuyoType } from './Puyo';
 type Props = {
   grid: Grid;
   className?: string;
-  // children: React.ReactNode;
 };
 
 const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
-  // const grid = useStore((store) => store.grid);
-  // const cellSize = useStore((store) => store.cellSize);
   const puyos = useStore((store) => store.puyos);
   const userPuyoIds = useStore((store) => store.userPuyoIds);
   const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
   const setCellSize = useStore((store) => store.setCellSize);
-  const [ref, { x, y, width }] = useMeasure();
+  const [ref, { width }] = useMeasure();
 
   const cellSize = width / 6;
   React.useEffect(() => {
     setCellSize(cellSize);
-  }, [cellSize]);
-
-  // console.log(width);
+  }, [cellSize, setCellSize]);
 
   return (
     <div
@@ -34,7 +29,7 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
       <div className="bg-stone-800">
         {grid
           // Hide top two rows for new puyos
-          .filter((row, r) => r > 1)
+          .filter((_, r) => r > 1)
           .map((columns, i) => {
             return (
               <div className="flex" key={i}>
@@ -100,8 +95,6 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
 export const MemoBoard = React.memo(Board, (prevProps, nextProps) => {
   const prevGridString = prevProps.grid.join(',');
   const nextGridString = nextProps.grid.join(',');
-
-  // console.log(prevGridString, nextGridString);
 
   if (prevGridString === nextGridString) {
     return true;

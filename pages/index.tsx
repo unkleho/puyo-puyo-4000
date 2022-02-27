@@ -109,20 +109,18 @@ const Home: NextPage = () => {
     loseGame,
   ]);
 
-  // console.log(gameState);
-
   return (
-    <main className={'h-full bg-stone-900 p-4'}>
+    <main className={'h-full bg-stone-900 p-4 md:flex md:justify-center'}>
       <div className="game h-full gap-4">
-        <div className="flex">
+        <div className="flex md:justify-center">
           <div className="h-full overflow-hidden">
             <ThreeBoard grid={grid} className="board" />
-            {/* <Board grid={grid} className=""></Board> */}
+            {/* <Board grid={grid} className="" /> */}
           </div>
 
           <div className="ml-4 flex flex-col justify-between">
-            {/* <Queue /> */}
             <ThreeQueue className="mr-4 border-t border-b border-stone-700" />
+            {/* <Queue /> */}
 
             <div className="flex flex-col space-y-4">
               {gameState !== 'idle' && (
