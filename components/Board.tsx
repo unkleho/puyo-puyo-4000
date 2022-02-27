@@ -65,7 +65,7 @@ const Board: React.FunctionComponent<Props> = ({ grid, className }) => {
               const newRow = row - 2;
 
               let type: PuyoType;
-              if (puyoIdsToClear.includes(id)) {
+              if (puyoIdsToClear.find((ids) => ids.includes(id))) {
                 type = 'to-clear';
               } else if (userPuyoIds.includes(id)) {
                 type = 'user';
