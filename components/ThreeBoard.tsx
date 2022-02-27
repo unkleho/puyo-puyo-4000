@@ -17,9 +17,9 @@ import { getPuyoPosition, Grid, useStore } from '../store/store';
 import useMeasure from 'react-use-measure';
 import { PuyoSphere } from './PuyoSphere';
 
-// codesandbox.io/s/el11e?file=/src/App.js:2033-2275
+// https://codesandbox.io/s/el11e?file=/src/App.js:2033-2275
 
-https: type Props = {
+type Props = {
   grid: Grid;
   className?: string;
   // children: React.ReactNode;
@@ -27,6 +27,10 @@ https: type Props = {
 
 const devicePixelRatio =
   typeof window === 'object' ? window.devicePixelRatio : null;
+
+const stone600 = 'rgb(87, 83, 78)';
+const stone700 = 'rgb(68, 64, 60)';
+const stone800 = 'rgb(41, 37, 36)';
 
 export const ThreeBoard: React.FunctionComponent<Props> = ({
   grid,
@@ -79,9 +83,6 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         }}
         dpr={devicePixelRatio as Dpr}
       >
-        {/* <orthographicCamera args={[0, 0, 0, 0, 0, 0]} zoom={10} /> */}
-        {/* <OrthographicCamera makeDefault /> */}
-
         <AnimatePresence>
           {Object.entries(puyos).map(([id, puyo]) => {
             const [column, row] = getPuyoPosition(grid, id);
@@ -122,23 +123,35 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
           })}
         </AnimatePresence>
 
-        {/* <Line
-          points={[
-            [0, 0, 0],
-            [3 * cellSize, 0, 0],
-          ]} // Array of points
-          color="white" // Default
-          lineWidth={1} // In pixels (default)
-        />
+        {[...new Array(11)].map((_, i) => {
+          const y = i * cellSize - cellSize * 5;
+          return (
+            <Line
+              points={[
+                [-3 * cellSize, y, 0],
+                [3 * cellSize, y, 0],
+              ]}
+              color={stone700}
+              lineWidth={1}
+              key={i}
+            />
+          );
+        })}
 
-        <Line
-          points={[
-            [0, 0, 0],
-            [0, 320, 0],
-          ]} // Array of points
-          color="white" // Default
-          lineWidth={1} // In pixels (default)
-        /> */}
+        {[...new Array(5)].map((_, i) => {
+          const x = i * cellSize - cellSize * 2;
+          return (
+            <Line
+              points={[
+                [x, -6 * cellSize, 0],
+                [x, 6 * cellSize, 0],
+              ]}
+              color={stone700}
+              lineWidth={1}
+              key={i}
+            />
+          );
+        })}
 
         {/*An ambient light that creates a soft light against the object */}
         <ambientLight intensity={0.3} />

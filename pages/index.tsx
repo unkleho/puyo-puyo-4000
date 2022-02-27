@@ -165,14 +165,14 @@ const Home: NextPage = () => {
               Puyo Puyo
             </h1>
             <p
-              className="mt-auto  text-right text-3xl font-normal uppercase leading-none tracking-wider"
+              className="mt-auto text-right font-normal uppercase leading-none tracking-wider"
               style={{
                 writingMode: 'vertical-rl',
               }}
             >
               <span className="-mr-5 inline-block text-xs">Score</span>
               <span
-                className="mb-0 -mr-3 inline-block"
+                className="mb-0 -mr-2 inline-block text-3xl font-semibold"
                 style={{
                   minHeight: '7rem',
                 }}

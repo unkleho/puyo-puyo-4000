@@ -11,7 +11,7 @@ export const ButtonIcon: React.FC<Props> = ({ name, className, onClick }) => {
     <button
       onClick={onClick}
       className={[
-        'flex h-12 w-12 justify-center border border-stone-700 uppercase',
+        'flex h-12 w-12 items-center justify-center border border-stone-700 uppercase',
         className || '',
       ].join(' ')}
     >
