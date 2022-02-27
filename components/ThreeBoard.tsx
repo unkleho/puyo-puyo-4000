@@ -38,16 +38,19 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const setCellSize = useStore((store) => store.setCellSize);
   const screen = useStore((store) => store.screen);
 
-  const widthAdjust = 90;
-  const heightAdjust = 190;
+  const boardPadding = 10;
 
   // Calculate width/height of board based on screen size and surrounding ui
+  const widthAdjust = 90;
+  const heightAdjust = 190;
   const width =
     screen.height - heightAdjust < (screen.width - widthAdjust) * 2
       ? (screen.height - heightAdjust) / 2
       : screen.width - widthAdjust;
-  const height = width * 2;
-  const cellSize = width / 6;
+  const height = width * 2 - boardPadding;
+
+  // Work out cellSize
+  const cellSize = (width - boardPadding) / 6;
 
   React.useEffect(() => {
     setCellSize(cellSize);
@@ -56,7 +59,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   return (
     <div
       className={[
-        'relative border border-stone-700 bg-stone-900',
+        'relative border  border-stone-700 bg-stone-900',
         className || '',
       ].join(' ')}
       style={{
@@ -72,34 +75,12 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
           // far: 10000,
           // fov: 100,
           zoom: 1,
-          // near: 0.1, far: 10000,
           position: [0, 0, 100],
         }}
         dpr={devicePixelRatio as Dpr}
-        // style={{
-        //   width: '100%',
-        //   // height: width * 2,
-        // }}
       >
-        {/* <PuyoSphere id="test" colour={PuyoColour.GREEN} /> */}
         {/* <orthographicCamera args={[0, 0, 0, 0, 0, 0]} zoom={10} /> */}
         {/* <OrthographicCamera makeDefault /> */}
-
-        {/* <QuadraticBezierLine
-          start={[cellSize * -3, cellSize * 5, 0]}
-          end={[cellSize * -2, cellSize * 6, 0]}
-          color="white"
-        />
-        <QuadraticBezierLine
-          start={[cellSize * -2, cellSize * 6, 0]}
-          end={[cellSize * 2, cellSize * 6, 0]}
-          color="white"
-        />
-        <QuadraticBezierLine
-          start={[cellSize * 2, cellSize * 6, 0]}
-          end={[cellSize * 3, cellSize * 5, 0]}
-          color="white"
-        /> */}
 
         <AnimatePresence>
           {Object.entries(puyos).map(([id, puyo]) => {

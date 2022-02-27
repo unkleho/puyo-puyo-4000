@@ -83,6 +83,7 @@ export type Store = {
   startGame: () => void;
   togglePauseGame: () => void;
   loseGame: () => void;
+  idleGame: () => void;
   setCellSize: (cellSize: number) => void;
   movePuyos: (direction: MovePuyoDirection) => void;
   rotatePuyos: () => void;
@@ -157,6 +158,14 @@ export const useStore = create<Store>((set) => ({
     set(() => {
       return {
         gameState: 'lose',
+      };
+    }),
+  idleGame: () =>
+    set(() => {
+      return {
+        grid: clearGrid,
+        nextPuyoIds: [],
+        gameState: 'idle',
       };
     }),
   setCellSize: (cellSize) =>

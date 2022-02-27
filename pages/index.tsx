@@ -1,7 +1,9 @@
 import type { NextPage } from 'next';
 import React, { useEffect } from 'react';
 import { MemoBoard as Board } from '../components/Board';
+import { ButtonIcon } from '../components/ButtonIcon';
 import { ControlButtons } from '../components/ControlButtons';
+import { Icon } from '../components/Icon';
 // import { Queue } from '../components/Queue';
 import { ThreeBoard } from '../components/ThreeBoard';
 import { ThreeQueue } from '../components/ThreeQueue';
@@ -19,12 +21,13 @@ const Home: NextPage = () => {
   const tickSpeed = useStore((store) => store.tickSpeed);
   const score = useStore((store) => store.score);
   const chainCount = useStore((store) => store.chainCount);
-  const cellSize = useStore((store) => store.cellSize);
-  const setCellSize = useStore((store) => store.setCellSize);
   const setScreen = useStore((store) => store.setScreen);
 
   const startGame = useStore((store) => store.startGame);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
+  const loseGame = useStore((store) => store.loseGame);
+  const idleGame = useStore((store) => store.idleGame);
+
   const movePuyos = useStore((store) => store.movePuyos);
   const rotatePuyos = useStore((store) => store.rotatePuyos);
   const addPuyos = useStore((store) => store.addPuyos);
@@ -32,7 +35,6 @@ const Home: NextPage = () => {
   const landedPuyos = useStore((store) => store.landedPuyos);
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
-  const loseGame = useStore((store) => store.loseGame);
 
   const windowSize = useWindowSize();
   // iPhone Mini Viewport 375 x 610
@@ -42,18 +44,6 @@ const Home: NextPage = () => {
       setScreen(windowSize.width, windowSize.height);
     }
   }, [windowSize.width, windowSize.height, setScreen]);
-
-  // console.log('main', width, height);
-
-  // Allow space for gaps and borders
-  // const boardGap = 4;
-  // const gridGap = 0;
-  // const totalGap = boardGap * 4 + gridGap;
-  // const cellSize = (width - totalGap) / 7;
-  // React.useEffect(() => {
-  //   setCellSize(cellSize);
-  // }, [cellSize]);
-  // console.log({ width });
 
   useKeyPress('ArrowLeft', () => {
     movePuyos('left');
@@ -126,43 +116,69 @@ const Home: NextPage = () => {
         <div className="flex">
           <div className="h-full overflow-hidden">
             <ThreeBoard grid={grid} className="board" />
+            {/* <Board grid={grid} className=""></Board> */}
           </div>
-
-          {/* <Board grid={grid} className=""></Board> */}
 
           <div className="ml-4 flex flex-col justify-between">
             {/* <Queue /> */}
             <ThreeQueue className="mr-4 border-t border-b border-stone-700" />
 
-            <div className="flex flex-col">
+            <div className="flex flex-col space-y-4">
+              {gameState !== 'idle' && (
+                <ButtonIcon
+                  name="return-up-back"
+                  onClick={() => {
+                    idleGame();
+                  }}
+                  className=""
+                ></ButtonIcon>
+              )}
+
               {gameState === 'idle' ||
               gameState === 'paused' ||
               gameState === 'lose' ? (
-                <button
-                  onClick={() => startGame()}
-                  className="uppercase tracking-wider"
-                >
-                  Play
-                </button>
+                <ButtonIcon
+                  name="play"
+                  onClick={() => {
+                    if (gameState === 'paused') {
+                      togglePauseGame();
+                    } else {
+                      startGame();
+                    }
+                  }}
+                  className=""
+                ></ButtonIcon>
               ) : (
-                <button onClick={() => togglePauseGame()} className="uppercase">
-                  Pause
-                </button>
+                <ButtonIcon
+                  name="pause"
+                  onClick={() => togglePauseGame()}
+                  className="uppercase"
+                >
+                  <Icon name="pause" />
+                </ButtonIcon>
               )}
             </div>
           </div>
 
-          <div className="ml-2 flex flex-1 flex-col">
+          <div className="ml-auto flex w-12 flex-col">
             <h1 className="mt-[-0.2em] text-right uppercase leading-none tracking-widest">
               Puyo Puyo
             </h1>
             <p
-              className="mt-auto border-l border-stone-700 text-right text-3xl font-normal uppercase leading-none tracking-wider"
+              className="mt-auto  text-right text-3xl font-normal uppercase leading-none tracking-wider"
               style={{
                 writingMode: 'vertical-rl',
               }}
             >
-              {score}
+              <span className="-mr-5 inline-block text-xs">Score</span>
+              <span
+                className="mb-0 -mr-3 inline-block"
+                style={{
+                  minHeight: '7rem',
+                }}
+              >
+                {score}
+              </span>
             </p>
           </div>
         </div>
@@ -179,7 +195,7 @@ const Home: NextPage = () => {
         .game {
           display: grid;
           grid-template-columns: 1fr;
-          grid-template-rows: 1fr auto;
+          grid-template-rows: auto 1fr;
         }
       `}</style>
     </main>

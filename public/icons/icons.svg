@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
 
-  <symbol id="right">
+  <symbol id="down">
     <path
       fill="none"
       stroke="currentColor"
       stroke-linecap="round"
       stroke-linejoin="round"
       stroke-width="48"
-      d="M184 112l144 144-144 144"
+      d="M112 184l144 144 144-144"
     />
   </symbol>
 
@@ -22,14 +22,46 @@
     />  
   </symbol>
 
-  <symbol id="down">
+  <symbol id="play">
+    <path
+      fill="currentColor"
+      d="M133 440a35.37 35.37 0 01-17.5-4.67c-12-6.8-19.46-20-19.46-34.33V111c0-14.37 7.46-27.53 19.46-34.33a35.13 35.13 0 0135.77.45l247.85 148.36a36 36 0 010 61l-247.89 148.4A35.5 35.5 0 01133 440z"
+    />
+  </symbol>
+
+  <symbol id="pause">
+    <path
+      fill="currentColor"
+      d="M208 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16zM352 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16z"
+    />
+  </symbol>
+
+  <symbol id="return-up-back">
+    <path
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="32"
+      d="M112 160l-64 64 64 64"
+    /><path
+      d="M64 224h294c58.76 0 106 49.33 106 108v20"
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="32"
+    />
+  </symbol>
+
+  <symbol id="right">
     <path
       fill="none"
       stroke="currentColor"
       stroke-linecap="round"
       stroke-linejoin="round"
       stroke-width="48"
-      d="M112 184l144 144 144-144"
+      d="M184 112l144 144-144 144"
     />
   </symbol>
 
