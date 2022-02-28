@@ -62,7 +62,7 @@ export type Store = {
   columns: number;
   rows: number;
   grid: Grid;
-  /**  TODO: Clean up puyos as they just keep expanding, which could lead to memory issues */
+  /**  TODO: Clean up puyos as they just keep expanding, which could lead to memory issues. But keep in mind puyo ids are incremented from this */
   puyos: Puyos;
   /** Two user controlled puyos, 2nd one rotates around 1st */
   userPuyoIds: [string, string];
@@ -189,9 +189,9 @@ export const useStore = create<Store>((set) => ({
       // Create new next puyos
       const newPuyo1 = createRandomPuyo();
       const newPuyo2 = createRandomPuyo();
-      // TODO: Work out foolproof way of creating ids
-      const newPuyo1Id = Math.floor(Math.random() * 10000).toString();
-      const newPuyo2Id = Math.floor(Math.random() * 10000).toString();
+      const puyoCount = Object.keys(state.puyos).length;
+      const newPuyo1Id = puyoCount.toString();
+      const newPuyo2Id = (puyoCount + 1).toString();
       const puyos = { ...state.puyos };
 
       // Add to map of puyos
