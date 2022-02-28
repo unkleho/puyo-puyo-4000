@@ -131,7 +131,7 @@ export const useStore = create<Store>((set) => ({
   startGame: () =>
     set(() => {
       const grid = cloneGrid(clearGrid);
-      // TODO: Drop brand new puyos properly. May need to create two hidden rows above grid
+      // TODO: Drop brand new puyos properly.
       grid[0][2] = '0';
       grid[1][2] = '1';
 

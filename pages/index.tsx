@@ -1,5 +1,6 @@
 import type { NextPage } from 'next';
 import React, { useEffect } from 'react';
+import { Alert } from '../components/Alert';
 import { MemoBoard as Board } from '../components/Board';
 import { ButtonIcon } from '../components/ButtonIcon';
 import { ControlButtons } from '../components/ControlButtons';
@@ -113,9 +114,13 @@ const Home: NextPage = () => {
     <main className={'h-full  bg-stone-900 p-4 md:flex md:justify-center'}>
       <div className="game h-full gap-4">
         <div className="flex md:justify-center">
-          <div className="h-full overflow-hidden">
+          <div className="relative h-full overflow-hidden">
             <ThreeBoard grid={grid} className="board" />
             {/* <Board grid={grid} className="" /> */}
+
+            <Alert onClick={() => startGame()} isActive={gameState === 'lose'}>
+              Play again
+            </Alert>
           </div>
 
           <div className="ml-4 flex flex-col justify-between">

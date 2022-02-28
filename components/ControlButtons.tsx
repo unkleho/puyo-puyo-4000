@@ -41,7 +41,7 @@ export const ControlButtons = () => {
       <style jsx>{`
         .control-buttons {
           display: grid;
-          grid-template-columns: 1fr 2fr 1fr;
+          grid-template-columns: 2fr 5fr 2fr;
           grid-template-rows: 1fr 1fr;
         }
       `}</style>
