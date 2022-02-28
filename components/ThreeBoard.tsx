@@ -29,7 +29,8 @@ const devicePixelRatio =
   typeof window === 'object' ? window.devicePixelRatio : null;
 
 const stone600 = 'rgb(87, 83, 78)';
-const stone700 = 'rgb(68, 64, 60)';
+// const stone700 = 'rgb(68, 64, 60)'; // Original TW colour
+const stone700 = 'rgb(58, 54, 50)'; // Altered colour because stone800 too dark in WebGL
 const stone800 = 'rgb(41, 37, 36)';
 
 export const ThreeBoard: React.FunctionComponent<Props> = ({
@@ -38,15 +39,10 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 }) => {
   const puyos = useStore((store) => store.puyos);
   const userPuyoIds = useStore((store) => store.userPuyoIds);
-  const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
   const setCellSize = useStore((store) => store.setCellSize);
   const screen = useStore((store) => store.screen);
 
   // console.log(puyoIdsToClear);
-
-  // if (getPuyoPosition(grid, puyoIdsToClear[0])) {
-  //   console.log(getPuyoPosition(grid, puyoIdsToClear[0]), puyoIdsToClear);
-  // }
 
   const boardPadding = 10;
 
@@ -59,7 +55,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
       : screen.width - widthAdjust;
   const height = width * 2 - boardPadding;
 
-  // Work out cellSize
+  // Work out cellSize based on width of board
   const cellSize = (width - boardPadding) / 6;
 
   React.useEffect(() => {
@@ -75,7 +71,6 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
       style={{
         width,
         height,
-        // borderRadius: (cellSize / 2) * 1,
       }}
     >
       <Canvas
@@ -98,10 +93,6 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
               const newRow = row - 2;
 
               let type: PuyoType;
-              // if (puyoIdsToClear.find((ids) => ids.includes(id))) {
-              // This is already done in PuyoSphereAnimatePresence
-              // type = 'to-clear';
-              // } else
               if (userPuyoIds.includes(id)) {
                 type = 'user';
               } else {

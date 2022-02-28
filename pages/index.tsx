@@ -169,9 +169,11 @@ const Home: NextPage = () => {
                 writingMode: 'vertical-rl',
               }}
             >
-              <span className="inline-block text-xs leading-none">Score</span>
+              <span className="inline-block translate-x-[0.1em] text-xs leading-none">
+                Score
+              </span>
               <span
-                className="mb-0 inline-block translate-x-1 text-3xl font-semibold tabular-nums leading-none"
+                className="mb-0 inline-block translate-x-[0.23em] text-3xl font-semibold tabular-nums leading-none"
                 style={{
                   minHeight: '7rem',
                 }}

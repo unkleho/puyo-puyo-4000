@@ -255,43 +255,75 @@ export const useStore = create<Store>((set) => ({
             gameState = 'landing-puyos';
           }
         } else if (direction === 'left') {
-          // Work out which puyo is on the left, then use it to check
-          // for collisions.
-          if (puyo1Column < puyo2Column) {
-            // Puyo1 is on the left, so use it to check collision
-            if (grid[puyo1Row][puyo1Column - 1] === null) {
+          if (puyo1Column === puyo2Column) {
+            // Vertical puyos
+            // Check for collisions on the left
+            if (
+              grid[puyo1Row][puyo1Column - 1] === null &&
+              grid[puyo2Row][puyo2Column - 1] === null
+            ) {
               grid[puyo1Row][puyo1Column] = null;
               grid[puyo1Row][puyo1Column - 1] = puyo1Id;
               grid[puyo2Row][puyo2Column] = null;
               grid[puyo2Row][puyo2Column - 1] = puyo2Id;
             }
           } else {
-            // Puyo2 is on the left, so use it to check collision
-            if (grid[puyo2Row][puyo2Column - 1] === null) {
-              grid[puyo2Row][puyo2Column] = null;
-              grid[puyo2Row][puyo2Column - 1] = puyo2Id;
-              grid[puyo1Row][puyo1Column] = null;
-              grid[puyo1Row][puyo1Column - 1] = puyo1Id;
+            // Horizontal puyos
+            if (puyo1Column < puyo2Column) {
+              // Work out which puyo is on the left, then use it to check
+              // for collisions.
+
+              // Puyo1 is on the left, so use it to check collision
+              if (grid[puyo1Row][puyo1Column - 1] === null) {
+                grid[puyo1Row][puyo1Column] = null;
+                grid[puyo1Row][puyo1Column - 1] = puyo1Id;
+                grid[puyo2Row][puyo2Column] = null;
+                grid[puyo2Row][puyo2Column - 1] = puyo2Id;
+              }
+            } else {
+              // Puyo2 is on the left, so use it to check collision
+              if (grid[puyo2Row][puyo2Column - 1] === null) {
+                grid[puyo2Row][puyo2Column] = null;
+                grid[puyo2Row][puyo2Column - 1] = puyo2Id;
+                grid[puyo1Row][puyo1Column] = null;
+                grid[puyo1Row][puyo1Column - 1] = puyo1Id;
+              }
             }
           }
         } else if (direction === 'right') {
-          // Work out which puyo is on the right, then use it to check
-          // for collisions.
-          if (puyo1Column > puyo2Column) {
-            // Puyo1 is on the right, so use it to check collision
-            if (grid[puyo1Row][puyo1Column + 1] === null) {
+          if (puyo1Column === puyo2Column) {
+            // Vertical puyos
+            // Check for collisions on the right
+            if (
+              grid[puyo1Row][puyo1Column + 1] === null &&
+              grid[puyo2Row][puyo2Column + 1] === null
+            ) {
               grid[puyo1Row][puyo1Column] = null;
               grid[puyo1Row][puyo1Column + 1] = puyo1Id;
               grid[puyo2Row][puyo2Column] = null;
               grid[puyo2Row][puyo2Column + 1] = puyo2Id;
             }
           } else {
-            // Puyo2 is on the right, so use it to check collision
-            if (grid[puyo2Row][puyo2Column + 1] === null) {
-              grid[puyo2Row][puyo2Column] = null;
-              grid[puyo2Row][puyo2Column + 1] = puyo2Id;
-              grid[puyo1Row][puyo1Column] = null;
-              grid[puyo1Row][puyo1Column + 1] = puyo1Id;
+            // Horizontal puyos
+
+            // Work out which puyo is on the right, then use it to check
+            // for collisions.
+            if (puyo1Column > puyo2Column) {
+              // Puyo1 is on the right, so use it to check collision
+              if (grid[puyo1Row][puyo1Column + 1] === null) {
+                grid[puyo1Row][puyo1Column] = null;
+                grid[puyo1Row][puyo1Column + 1] = puyo1Id;
+                grid[puyo2Row][puyo2Column] = null;
+                grid[puyo2Row][puyo2Column + 1] = puyo2Id;
+              }
+            } else {
+              // Puyo2 is on the right, so use it to check collision
+              if (grid[puyo2Row][puyo2Column + 1] === null) {
+                grid[puyo2Row][puyo2Column] = null;
+                grid[puyo2Row][puyo2Column + 1] = puyo2Id;
+                grid[puyo1Row][puyo1Column] = null;
+                grid[puyo1Row][puyo1Column + 1] = puyo1Id;
+              }
             }
           }
         }
