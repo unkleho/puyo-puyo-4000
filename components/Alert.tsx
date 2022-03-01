@@ -15,31 +15,31 @@ export const Alert: React.FC<Props> = ({ isActive, children, onClick }) => {
     <AnimatePresence>
       {isActive && (
         <button
-          className="absolute top-[50%] left-[50%] text-center uppercase leading-none tracking-widest"
+          className="absolute top-[50%] left-[50%] text-center uppercase leading-none tracking-widest hover:text-fuchsia-600"
           style={{
             transform: 'translate(-50%, -50%)',
           }}
           onClick={onClick}
         >
-          <svg viewBox="0 0 " width={width} height={height}>
+          <svg viewBox="0 0" width={width} height={height}>
             <motion.path
               d={`
-          M 0 ${height * 0.5} 
-          V ${height * 0.1} 
-          L ${width * 0.1} 0 
-          H ${width * 0.9} 
-          L ${width} ${height * 0.1} 
-          V ${height * 0.9} 
-          L ${width * 0.9} ${height} 
-          H ${width * 0.1} 
-          L 0 ${height * 0.9}
-        `}
+                M 0 ${height * 0.5} 
+                V ${height * 0.1} 
+                L ${width * 0.1} 0 
+                H ${width * 0.9} 
+                L ${width} ${height * 0.1} 
+                V ${height * 0.9} 
+                L ${width * 0.9} ${height} 
+                H ${width * 0.1} 
+                L 0 ${height * 0.9}
+              `}
               fill="rgb(18 15 13)"
               initial={{
                 opacity: 0,
               }}
               animate={{
-                opacity: 0.7,
+                opacity: 0.9,
               }}
               exit={{
                 opacity: 0,
@@ -63,6 +63,7 @@ export const Alert: React.FC<Props> = ({ isActive, children, onClick }) => {
                   d={d}
                   // stone-700
                   stroke="rgb(65 64 60)"
+                  strokeWidth={1.5}
                   fill="none"
                   initial={{
                     pathLength: 0,
@@ -83,7 +84,7 @@ export const Alert: React.FC<Props> = ({ isActive, children, onClick }) => {
           </svg>
 
           <motion.span
-            className="absolute top-[50%] left-[50%]"
+            className="absolute top-[50%] left-[50%] "
             initial={{
               opacity: 0,
             }}

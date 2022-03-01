@@ -32,6 +32,7 @@ const stone600 = 'rgb(87, 83, 78)';
 // const stone700 = 'rgb(68, 64, 60)'; // Original TW colour
 const stone700 = 'rgb(58, 54, 50)'; // Altered colour because stone800 too dark in WebGL
 const stone800 = 'rgb(41, 37, 36)';
+const stone950 = 'rgb(23, 20, 18)';
 
 export const ThreeBoard: React.FunctionComponent<Props> = ({
   grid,
@@ -64,13 +65,13 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 
   return (
     <div
-      className={[
-        'relative border  border-stone-700 bg-stone-900',
-        className || '',
-      ].join(' ')}
+      className={['relative border  border-stone-700 ', className || ''].join(
+        ' ',
+      )}
       style={{
         width,
         height,
+        backgroundColor: stone950,
       }}
     >
       <Canvas

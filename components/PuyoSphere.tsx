@@ -20,7 +20,7 @@ const colours = {
   [PuyoColour.RED]: '#DC2626',
   [PuyoColour.YELLOW]: '#CA8A04',
   [PuyoColour.GREEN]: '#15803D',
-  [PuyoColour.PURPLE]: '#9333EA',
+  [PuyoColour.PURPLE]: '#9333EA', // purple-600
 };
 
 export const PuyoSphere: React.FC<PuyoSphereProps> = ({

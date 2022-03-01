@@ -13,8 +13,8 @@ import { useKeyPress } from '../hooks/use-key-press';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useStore } from '../store/store';
 
-const collapsePuyosTimeout = 300;
-const clearPuyosTimeout = 300;
+const collapsePuyosTimeout = 400;
+const clearPuyosTimeout = 400;
 const landingPuyosTimeout = 300;
 
 const Home: NextPage = () => {
@@ -22,7 +22,9 @@ const Home: NextPage = () => {
   const gameState = useStore((store) => store.gameState);
   const tickSpeed = useStore((store) => store.tickSpeed);
   const score = useStore((store) => store.score);
-  const chainCount = useStore((store) => store.chainCount);
+  const totalChainCount = useStore((store) => store.totalChainCount);
+  const level = useStore((store) => store.level);
+
   const setScreen = useStore((store) => store.setScreen);
 
   const startGame = useStore((store) => store.startGame);
@@ -118,6 +120,9 @@ const Home: NextPage = () => {
             <ThreeBoard grid={grid} className="board" />
             {/* <Board grid={grid} className="" /> */}
 
+            <Alert onClick={() => startGame()} isActive={gameState === 'idle'}>
+              Start
+            </Alert>
             <Alert onClick={() => startGame()} isActive={gameState === 'lose'}>
               Play again
             </Alert>
@@ -126,6 +131,21 @@ const Home: NextPage = () => {
           <div className="ml-4 flex flex-col justify-between">
             <ThreeQueue className="mr-4 border-t border-b border-stone-700" />
             {/* <Queue /> */}
+
+            <div className="mb-auto mt-2 text-left">
+              <p className="text-xs uppercase tracking-widest text-stone-600">
+                Lvl
+              </p>
+              <p className="mb-1 text-lg font-bold uppercase tracking-widest">
+                {level}
+              </p>
+              <p className="text-xs uppercase tracking-widest text-stone-600">
+                Chns
+              </p>
+              <p className="text-lg font-bold uppercase tracking-widest">
+                {totalChainCount}
+              </p>
+            </div>
 
             <div className="flex flex-col space-y-4">
               {gameState !== 'idle' && (
@@ -168,13 +188,14 @@ const Home: NextPage = () => {
             <h1 className="mt-[-0.2em] text-right uppercase leading-none tracking-widest">
               Puyo Puyo
             </h1>
+
             <p
-              className="mt-auto flex text-right font-normal uppercase leading-none tracking-wider"
+              className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"
               style={{
                 writingMode: 'vertical-rl',
               }}
             >
-              <span className="inline-block translate-x-[0.1em] text-xs leading-none">
+              <span className="inline-block translate-x-[0.1em] text-xs leading-none text-stone-600">
                 Score
               </span>
               <span
@@ -194,8 +215,7 @@ const Home: NextPage = () => {
 
       {/* 
       <p className="text-sm uppercase">{gameState}</p>
-      <p className="text-sm uppercase">{tickSpeed}</p>
-      <p className="text-sm uppercase">{chainCount}</p> */}
+      <p className="text-sm uppercase">{totalChainCount}</p> */}
 
       <style jsx>{`
         .game {

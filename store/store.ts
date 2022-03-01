@@ -1,3 +1,4 @@
+import { stat } from 'fs';
 import create from 'zustand';
 import { checkDown, collapsePuyos } from '../shared';
 import { clearPuyos } from '../shared/clear-puyos';
@@ -57,6 +58,8 @@ const clearGrid = [
   [null, null, null, null, null, null],
 ];
 
+const INITIAL_TICK_SPEED = 600;
+
 export type Store = {
   gameState: GameState;
   columns: number;
@@ -76,6 +79,8 @@ export type Store = {
   score: number;
   /** Temporary chain count between clear and collapse states, used to work out chain power & scoring */
   chainCount: number;
+  totalChainCount: number;
+  level: number;
   screen: {
     width: number;
     height: number;
@@ -111,11 +116,13 @@ export const useStore = create<Store>((set) => ({
   userPuyoIds: ['0', '1'],
   nextPuyoIds: [],
   puyoIdsToClear: [],
-  tickSpeed: 500,
+  tickSpeed: INITIAL_TICK_SPEED,
   gameState: 'idle',
   score: 0,
   tempPuyoChains: [],
   chainCount: 0,
+  totalChainCount: 0,
+  level: 0,
   screen: {
     width: 0,
     height: 0,
@@ -149,6 +156,8 @@ export const useStore = create<Store>((set) => ({
         userPuyoIds: ['0', '1'],
         nextPuyoIds: ['2', '3', '4', '5'],
         score: 0,
+        level: 1,
+        chainCount: 0,
       };
     }),
   togglePauseGame: () =>
@@ -484,6 +493,8 @@ export const useStore = create<Store>((set) => ({
           puyoIdsToClear: clearedPuyoIdGroups,
           score: state.score + getScore(state.chainCount + 1, puyoChains),
           chainCount: state.chainCount + 1,
+          totalChainCount: state.totalChainCount + 1,
+          tickSpeed: state.tickSpeed,
         };
       }
 
@@ -491,14 +502,33 @@ export const useStore = create<Store>((set) => ({
       // game and add puyos
       return {
         grid,
-        // gameState: totalCount ? 'collapse-puyos' : 'add-puyos',
         gameState: 'add-puyos',
+        puyoIdsToClear: [],
         score: state.score,
         chainCount: 0,
-        puyoIdsToClear: [],
+        totalChainCount: state.totalChainCount,
+        tickSpeed: getTickSpeed(state.totalChainCount),
       };
     }),
 }));
+
+function getTickSpeed(totalChainCount: number): number {
+  if (totalChainCount >= 30) {
+    return 50;
+  } else if (totalChainCount >= 25) {
+    return 100;
+  } else if (totalChainCount >= 20) {
+    return 200;
+  } else if (totalChainCount >= 15) {
+    return 300;
+  } else if (totalChainCount >= 10) {
+    return 400;
+  } else if (totalChainCount >= 5) {
+    return 500;
+  }
+
+  return INITIAL_TICK_SPEED;
+}
 
 function createRandomPuyo(): Puyo {
   return {
