@@ -158,6 +158,8 @@ export const useStore = create<Store>((set) => ({
         score: 0,
         level: 1,
         chainCount: 0,
+        totalChainCount: 0,
+        tickSpeed: INITIAL_TICK_SPEED,
       };
     }),
   togglePauseGame: () =>
