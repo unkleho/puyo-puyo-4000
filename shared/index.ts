@@ -1,45 +1,52 @@
-import {
-  cloneGrid,
-  getPuyoPosition,
-  Grid,
-  PuyoColour,
-  puyoColours,
-} from '../store/store';
+import { count } from 'console';
+import { cloneGrid, getPuyoPosition, Grid } from '../store/store';
 
-type CheckDownState = 'landed' | 'active';
 /**
- * Check if user puyos can move down. If it can't, return 'landed' state.
- * @param grid
- * @param userPuyoIds
+ * Count how many empty cells are below user puyos
  */
-export function checkDown(
+export function countEmptyCellsBelow(
   grid: Grid,
   userPuyoIds: [string, string],
-): CheckDownState {
-  const userPuyoPositions = userPuyoIds.map((id) => {
+): number {
+  let userPuyoPositions = userPuyoIds.map((id) => {
     return getPuyoPosition(grid, id);
   });
 
-  let puyoState: CheckDownState = 'active';
+  const puyo1Row = userPuyoPositions[0][1];
+  const puyo2Row = userPuyoPositions[1][1];
+
+  // Check if user puyos are vertical
+  if (typeof puyo1Row === 'number' && typeof puyo2Row === 'number') {
+    if (puyo1Row !== puyo2Row) {
+      // If so, only keep user puyo with highest row (lowest user puyo on grid)
+      if (puyo1Row > puyo2Row) {
+        userPuyoPositions = [userPuyoPositions[0]];
+      } else {
+        userPuyoPositions = [userPuyoPositions[1]];
+      }
+    }
+  }
+
+  const counts: number[] = [];
 
   userPuyoPositions.forEach(([column, row], index) => {
     if (typeof column === 'number' && typeof row === 'number') {
-      if (grid[row + 1] === undefined) {
-        // Puyo has reached bottom as check is out of bounds
-        puyoState = 'landed';
-      } else {
-        const downPuyoId = grid[row + 1][column];
-        // Check if puyo below is part of user puyo
-        const userPuyoIsDown = userPuyoIds.includes(downPuyoId as string);
-
-        if (!userPuyoIsDown && grid[row + 1][column] !== null) {
-          puyoState = 'landed';
-        }
+      let nextRow = row;
+      while (grid[nextRow + 1] && grid[nextRow + 1][column] == null) {
+        nextRow++;
       }
+
+      const count = nextRow - row;
+      counts.push(count);
     }
   });
 
-  return puyoState;
+  // Get lowest count (user puyo that is closest to the another puyo below)
+  counts.sort();
+
+  // console.log(counts);
+
+  return counts[0];
 }
 
 /**

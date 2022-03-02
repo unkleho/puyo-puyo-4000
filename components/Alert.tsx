@@ -62,7 +62,8 @@ export const Alert: React.FC<Props> = ({ isActive, children, onClick }) => {
                 <motion.path
                   d={d}
                   // stone-700
-                  stroke="rgb(65 64 60)"
+                  // stroke="rgb(65 64 60)"
+                  stroke="rgb(95 94 90)"
                   strokeWidth={1.5}
                   fill="none"
                   initial={{

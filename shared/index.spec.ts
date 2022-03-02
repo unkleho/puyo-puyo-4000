@@ -1,5 +1,5 @@
 import { Grid, PuyoColour, Puyos } from '../store/store';
-import { checkDown, collapsePuyos } from './';
+import { collapsePuyos, countEmptyCellsBelow } from './';
 import { clearPuyos, getAdjacentPuyoIds } from './clear-puyos';
 import { getScore } from './score';
 
@@ -75,8 +75,8 @@ describe('Check Puyos', () => {
       ['1', '2', null, null, null, null],
       ['0', '3', null, '4', null, null],
     ];
-    const puyoState = checkDown(grid, ['user-0', 'user-1']);
-    expect(puyoState).toEqual('landed');
+    const count = countEmptyCellsBelow(grid, ['user-0', 'user-1']);
+    expect(count).toEqual(0);
   });
 
   it('should be landed on 3', () => {
@@ -86,8 +86,8 @@ describe('Check Puyos', () => {
       ['1', null, '3', null, null, null],
       ['0', '2', null, '4', null, null],
     ];
-    const puyoState = checkDown(grid, ['user-0', 'user-1']);
-    expect(puyoState).toEqual('landed');
+    const count = countEmptyCellsBelow(grid, ['user-0', 'user-1']);
+    expect(count).toEqual(0);
   });
 
   it('should be landed on bottom', () => {
@@ -97,8 +97,8 @@ describe('Check Puyos', () => {
       ['1', '2', null, null, null, null],
       ['0', '3', null, 'user-0', 'user-1', null],
     ];
-    const puyoState = checkDown(grid, ['user-0', 'user-1']);
-    expect(puyoState).toEqual('landed');
+    const count = countEmptyCellsBelow(grid, ['user-0', 'user-1']);
+    expect(count).toEqual(0);
   });
 
   it('should be active', () => {
@@ -108,8 +108,19 @@ describe('Check Puyos', () => {
       ['1', null, null, null, null, null],
       ['0', '3', null, '4', null, null],
     ];
-    const puyoState = checkDown(grid, ['user-0', 'user-1']);
-    expect(puyoState).toEqual('active');
+    const count = countEmptyCellsBelow(grid, ['user-0', 'user-1']);
+    expect(count).toEqual(1);
+  });
+
+  it('should be active', () => {
+    const grid = [
+      [null, 'user-0', null, null, null, null],
+      [null, 'user-1', null, null, null, null],
+      ['1', null, null, null, null, null],
+      ['0', null, null, '4', null, null],
+    ];
+    const count = countEmptyCellsBelow(grid, ['user-0', 'user-1']);
+    expect(count).toEqual(2);
   });
 });
 

@@ -1,6 +1,6 @@
 import { stat } from 'fs';
 import create from 'zustand';
-import { checkDown, collapsePuyos } from '../shared';
+import { countEmptyCellsBelow, collapsePuyos } from '../shared';
 import { clearPuyos } from '../shared/clear-puyos';
 import { getScore } from '../shared/score';
 
@@ -91,7 +91,7 @@ export type Store = {
   loseGame: () => void;
   idleGame: () => void;
   setCellSize: (cellSize: number) => void;
-  movePuyos: (direction: MovePuyoDirection) => void;
+  movePuyos: (direction: MovePuyoDirection, type?: 'user' | 'board') => void;
   rotatePuyos: () => void;
   addPuyos: () => void;
   landingPuyos: () => void;
@@ -228,7 +228,7 @@ export const useStore = create<Store>((set) => ({
         gameState: 'drop-puyos',
       };
     }),
-  movePuyos: (direction) => {
+  movePuyos: (direction, type = 'user') => {
     set((state) => {
       const grid = cloneGrid(state.grid);
       const [puyo1Id, puyo2Id] = state.userPuyoIds;
@@ -244,21 +244,28 @@ export const useStore = create<Store>((set) => ({
         typeof puyo2Column === 'number'
       ) {
         if (direction === 'down') {
-          const puyoState = checkDown(grid, state.userPuyoIds);
+          const count = countEmptyCellsBelow(grid, state.userPuyoIds);
 
-          if (puyoState === 'active') {
+          // Work out how many cells to move down
+          // Board automatically drops one cell at a time
+          let moveDownCount = 1;
+          if (type === 'user') {
+            moveDownCount = count < 3 ? count : 3;
+          }
+
+          if (count > 0) {
             if (puyo1Row > puyo2Row) {
               // Puyo1 is lower, so move it down first
               grid[puyo1Row][puyo1Column] = null;
-              grid[puyo1Row + 1][puyo1Column] = puyo1Id;
+              grid[puyo1Row + moveDownCount][puyo1Column] = puyo1Id;
               grid[puyo2Row][puyo2Column] = null;
-              grid[puyo2Row + 1][puyo2Column] = puyo2Id;
+              grid[puyo2Row + moveDownCount][puyo2Column] = puyo2Id;
             } else {
               // Puyo2 is lower, so move it down first
               grid[puyo2Row][puyo2Column] = null;
-              grid[puyo2Row + 1][puyo2Column] = puyo2Id;
+              grid[puyo2Row + moveDownCount][puyo2Column] = puyo2Id;
               grid[puyo1Row][puyo1Column] = null;
-              grid[puyo1Row + 1][puyo1Column] = puyo1Id;
+              grid[puyo1Row + moveDownCount][puyo1Column] = puyo1Id;
             }
           } else {
             gameState = 'landing-puyos';
@@ -423,12 +430,12 @@ export const useStore = create<Store>((set) => ({
   },
   landingPuyos: () => {
     set((state) => {
-      const puyoState = checkDown(state.grid, state.userPuyoIds);
+      const count = countEmptyCellsBelow(state.grid, state.userPuyoIds);
 
       return {
         // There is a bit of time while landing to move puyos, but after that,
         // trigger landed-puyos to start clear/collapse state
-        gameState: puyoState === 'landed' ? 'landed-puyos' : 'drop-puyos',
+        gameState: count === 0 ? 'landed-puyos' : 'drop-puyos',
       };
     });
   },

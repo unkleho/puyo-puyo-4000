@@ -162,6 +162,8 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         {/*An point light, basically the same as directional. This one points from under */}
         <pointLight position={[0, -10, 5]} intensity={1} />
       </Canvas>
+
+      {/* <div className="absolute inset-0 opacity-50 backdrop-blur-3xl"></div> */}
     </div>
   );
 };

@@ -72,7 +72,7 @@ const Home: NextPage = () => {
       addPuyos();
     } else if (gameState === 'drop-puyos') {
       interval = window.setInterval(() => {
-        movePuyos('down');
+        movePuyos('down', 'board');
       }, tickSpeed);
     } else if (gameState === 'paused') {
       window.clearInterval(interval);
