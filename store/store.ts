@@ -38,6 +38,7 @@ export const puyoColours = [
   PuyoColour.PURPLE,
 ];
 export type MovePuyoDirection = 'left' | 'right' | 'down';
+export type PuyoMoveType = 'left' | 'right' | 'down' | 'rotate';
 
 export type Grid = (string | null)[][];
 const clearGrid = [
@@ -85,6 +86,8 @@ export type Store = {
     width: number;
     height: number;
   };
+  // Testing this out
+  puyoMoveType: PuyoMoveType | null;
   setScreen: (width: number, height: number) => void;
   startGame: () => void;
   togglePauseGame: () => void;
@@ -127,6 +130,7 @@ export const useStore = create<Store>((set) => ({
     width: 0,
     height: 0,
   },
+  puyoMoveType: null,
   setScreen: (width, height) =>
     set(() => {
       console.log(width, height);
@@ -350,6 +354,7 @@ export const useStore = create<Store>((set) => ({
       return {
         grid,
         gameState,
+        puyoMoveType: type === 'user' ? 'down' : null,
       };
     });
   },
@@ -427,6 +432,7 @@ export const useStore = create<Store>((set) => ({
 
       return {
         grid,
+        puyoMoveType: 'rotate',
       };
     });
   },
@@ -523,9 +529,9 @@ export const useStore = create<Store>((set) => ({
 
 function getTickSpeed(totalChainCount: number): number {
   if (totalChainCount >= 30) {
-    return 50;
-  } else if (totalChainCount >= 25) {
     return 100;
+  } else if (totalChainCount >= 25) {
+    return 150;
   } else if (totalChainCount >= 20) {
     return 200;
   } else if (totalChainCount >= 15) {

@@ -42,6 +42,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const userPuyoIds = useStore((store) => store.userPuyoIds);
   const setCellSize = useStore((store) => store.setCellSize);
   const screen = useStore((store) => store.screen);
+  const puyoMoveType = useStore((store) => store.puyoMoveType);
 
   // console.log(puyoIdsToClear);
 
@@ -116,6 +117,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
                     initialX={cellSize * -0.5}
                     initialY={cellSize * 6}
                     type={type}
+                    moveType={puyoMoveType}
                   />
                 );
               }

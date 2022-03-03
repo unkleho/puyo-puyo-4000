@@ -3,14 +3,29 @@ import React from 'react';
 
 type Props = {
   isActive: boolean;
+  width: number;
+  height: number;
+  cornerRatio: number;
   children: React.ReactNode;
   onClick: () => void;
 };
 
-const width = 150;
-const height = 100;
+export const Alert: React.FC<Props> = ({
+  isActive,
+  width = 150,
+  height = 100,
+  cornerRatio = 0.1,
+  children,
+  onClick,
+}) => {
+  // Ensure 45 angle
+  const cornerHeightRatio = (width / height) * cornerRatio;
 
-export const Alert: React.FC<Props> = ({ isActive, children, onClick }) => {
+  const cornerStartWidth = width * cornerRatio;
+  const cornerStartHeight = height * cornerHeightRatio;
+  const cornerEndWidth = width * (1 - cornerRatio);
+  const cornerEndHeight = height * (1 - cornerHeightRatio);
+
   return (
     <AnimatePresence>
       {isActive && (
@@ -25,14 +40,14 @@ export const Alert: React.FC<Props> = ({ isActive, children, onClick }) => {
             <motion.path
               d={`
                 M 0 ${height * 0.5} 
-                V ${height * 0.1} 
-                L ${width * 0.1} 0 
-                H ${width * 0.9} 
-                L ${width} ${height * 0.1} 
-                V ${height * 0.9} 
-                L ${width * 0.9} ${height} 
-                H ${width * 0.1} 
-                L 0 ${height * 0.9}
+                V ${cornerStartHeight} 
+                L ${cornerStartWidth} 0 
+                H ${cornerEndWidth} 
+                L ${width} ${cornerStartHeight} 
+                V ${cornerEndHeight} 
+                L ${cornerEndWidth} ${height} 
+                H ${cornerStartWidth} 
+                L 0 ${cornerEndHeight}
               `}
               fill="rgb(18 15 13)"
               initial={{
@@ -47,16 +62,18 @@ export const Alert: React.FC<Props> = ({ isActive, children, onClick }) => {
             ></motion.path>
 
             {[
-              `M 0 ${height * 0.45} L 0 ${height * 0.1} L ${width * 0.1} 0`,
-              `M 0 ${height * 0.55} L 0 ${height * 0.9} L ${
-                width * 0.1
-              } ${height}`,
-              `M ${width} ${height * 0.45} L ${width} ${height * 0.1} L ${
-                width * 0.9
-              } 0`,
-              `M ${width} ${height * 0.55} L ${width} ${height * 0.9} L ${
-                width * 0.9
-              } ${height}`,
+              `M 0 ${
+                height * 0.45
+              } L 0 ${cornerStartHeight} L ${cornerStartWidth} 0`,
+              `M 0 ${
+                height * 0.55
+              } L 0 ${cornerEndHeight} L ${cornerStartWidth} ${height}`,
+              `M ${width} ${
+                height * 0.45
+              } L ${width} ${cornerStartHeight} L ${cornerEndWidth} 0`,
+              `M ${width} ${
+                height * 0.55
+              } L ${width} ${cornerEndHeight} L ${cornerEndWidth} ${height}`,
             ].map((d, i) => {
               return (
                 <motion.path

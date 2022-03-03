@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion-3d';
 import React from 'react';
 import { usePrevious } from '../hooks/use-previous';
-import { PuyoColour } from '../store/store';
+import { PuyoColour, PuyoMoveType } from '../store/store';
 import { PuyoType } from './Puyo';
 
 type PuyoSphereProps = {
@@ -13,6 +13,7 @@ type PuyoSphereProps = {
   initialX?: number;
   initialY?: number;
   type?: PuyoType;
+  moveType?: PuyoMoveType;
 };
 
 const colours = {
@@ -32,6 +33,7 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
   initialX,
   initialY,
   type,
+  moveType,
 }) => {
   if (x == null || y == null) {
     return null;
@@ -52,10 +54,16 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
         y,
         scale: type === 'to-clear' ? 0.005 : 1,
       }}
-      // transition={{
-      //   type: 'tween',
-      //   duration: 1,
-      // }}
+      // TODO: Experiment with smooth drop
+      // transition={
+      //   !moveType
+      //     ? {
+      //         type: 'tween',
+      //         duration: 0.6,
+      //         ease: 'linear',
+      //       }
+      //     : null
+      // }
       // Exit not working with framer-motion-3d
       // exit={{
       //   scale: 0.1,
