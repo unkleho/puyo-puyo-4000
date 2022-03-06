@@ -2,10 +2,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
 
 type Props = {
-  isActive: boolean;
-  width: number;
-  height: number;
-  cornerRatio: number;
+  isActive?: boolean;
+  width?: number;
+  height?: number;
+  cornerRatio?: number;
   children: React.ReactNode;
   onClick: () => void;
 };

@@ -1,6 +1,10 @@
-import { stat } from 'fs';
 import create from 'zustand';
-import { countEmptyCellsBelow, collapsePuyos } from '../shared';
+import {
+  countEmptyCellsBelow,
+  collapsePuyos,
+  isGridEqual,
+  cloneGrid,
+} from '../shared/grid';
 import { clearPuyos } from '../shared/clear-puyos';
 import { getScore } from '../shared/score';
 
@@ -236,6 +240,13 @@ export const useStore = create<Store>((set) => ({
     }),
   movePuyos: (direction, type = 'user') => {
     set((state) => {
+      // if (type === 'user' && state.gameState === 'paused') {
+      //   return {
+      //     grid: state.grid,
+      //     gameState: state.gameState,
+      //   };
+      // }
+
       const grid = cloneGrid(state.grid);
       const [puyo1Id, puyo2Id] = state.userPuyoIds;
       const [puyo1Column, puyo1Row] = getPuyoPosition(state.grid, puyo1Id);
@@ -354,7 +365,7 @@ export const useStore = create<Store>((set) => ({
       return {
         grid,
         gameState,
-        puyoMoveType: type === 'user' ? 'down' : null,
+        // puyoMoveType: type === 'user' ? 'down' : null,
       };
     });
   },
@@ -573,23 +584,4 @@ export function getPuyoPosition(
   );
 
   return [puyoColumn, puyoRow];
-}
-
-/**
- * Make clone of grid
- */
-export function cloneGrid(grid: Grid) {
-  const newGrid = grid.map((columns) => columns.slice());
-
-  return newGrid;
-}
-
-/**
- * Check if two grids are the same
- */
-export function isGridEqual(oldGrid: Grid, newGrid: Grid) {
-  return (
-    oldGrid.map((columns) => columns.join(',')).join(',') ===
-    newGrid.map((columns) => columns.join(',')).join(',')
-  );
 }

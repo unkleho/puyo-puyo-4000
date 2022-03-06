@@ -117,7 +117,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
                     initialX={cellSize * -0.5}
                     initialY={cellSize * 6}
                     type={type}
-                    moveType={puyoMoveType}
+                    // moveType={puyoMoveType}
                   />
                 );
               }

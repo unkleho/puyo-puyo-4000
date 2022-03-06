@@ -1,4 +1,5 @@
-import { cloneGrid, getPuyoPosition, Grid, Puyos } from '../store/store';
+import { getPuyoPosition, Grid, Puyos } from '../store/store';
+import { cloneGrid } from './grid';
 
 /**
  * Get new grid with cleared puyos. Use breadth first search algo.

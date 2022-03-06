@@ -1,7 +1,7 @@
 import type { NextPage } from 'next';
 import React, { useEffect } from 'react';
 import { Alert } from '../components/Alert';
-import { MemoBoard as Board } from '../components/Board';
+// import { MemoBoard as Board } from '../components/Board';
 import { ButtonIcon } from '../components/ButtonIcon';
 import { ControlButtons } from '../components/ControlButtons';
 import { Icon } from '../components/Icon';
@@ -49,20 +49,28 @@ const Home: NextPage = () => {
     }
   }, [windowSize.width, windowSize.height, setScreen]);
 
-  useKeyPress('ArrowLeft', () => {
-    movePuyos('left');
+  useKeyPress('ArrowLeft', [gameState], () => {
+    if (gameState !== 'paused') {
+      movePuyos('left');
+    }
   });
 
-  useKeyPress('ArrowRight', () => {
-    movePuyos('right');
+  useKeyPress('ArrowRight', [gameState], () => {
+    if (gameState !== 'paused') {
+      movePuyos('right');
+    }
   });
 
-  useKeyPress('ArrowUp', () => {
-    rotatePuyos();
+  useKeyPress('ArrowUp', [gameState], () => {
+    if (gameState !== 'paused') {
+      rotatePuyos();
+    }
   });
 
-  useKeyPress('ArrowDown', () => {
-    movePuyos('down');
+  useKeyPress('ArrowDown', [gameState], () => {
+    if (gameState !== 'paused') {
+      movePuyos('down');
+    }
   });
 
   useEffect(() => {
@@ -133,13 +141,13 @@ const Home: NextPage = () => {
             {/* <Queue /> */}
 
             <div className="mb-auto mt-2 text-left">
-              <p className="text-xs uppercase tracking-widest text-stone-600">
+              <p className="text-xs uppercase tracking-widest text-stone-500">
                 Lvl
               </p>
               <p className="mb-1 text-lg font-bold uppercase tracking-widest">
                 {level}
               </p>
-              <p className="text-xs uppercase tracking-widest text-stone-600">
+              <p className="text-xs uppercase tracking-widest text-stone-500">
                 Chns
               </p>
               <p className="text-lg font-bold uppercase tracking-widest">
@@ -195,7 +203,7 @@ const Home: NextPage = () => {
                 writingMode: 'vertical-rl',
               }}
             >
-              <span className="inline-block translate-x-[0.1em] text-xs leading-none text-stone-600">
+              <span className="inline-block translate-x-[0.1em] text-xs leading-none text-stone-500">
                 Score
               </span>
               <span

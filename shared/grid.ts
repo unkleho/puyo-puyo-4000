@@ -1,5 +1,23 @@
-import { count } from 'console';
-import { cloneGrid, getPuyoPosition, Grid } from '../store/store';
+import { getPuyoPosition, Grid } from '../store/store';
+
+/**
+ * Make clone of grid
+ */
+export function cloneGrid(grid: Grid) {
+  const newGrid = grid.map((columns) => columns.slice());
+
+  return newGrid;
+}
+
+/**
+ * Check if two grids are the same
+ */
+export function isGridEqual(oldGrid: Grid, newGrid: Grid) {
+  return (
+    oldGrid.map((columns) => columns.join(',')).join(',') ===
+    newGrid.map((columns) => columns.join(',')).join(',')
+  );
+}
 
 /**
  * Count how many empty cells are below user puyos

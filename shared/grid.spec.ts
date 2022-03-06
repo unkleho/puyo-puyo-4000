@@ -1,5 +1,5 @@
 import { Grid, PuyoColour, Puyos } from '../store/store';
-import { collapsePuyos, countEmptyCellsBelow } from './';
+import { collapsePuyos, countEmptyCellsBelow } from './grid';
 import { clearPuyos, getAdjacentPuyoIds } from './clear-puyos';
 import { getScore } from './score';
 
