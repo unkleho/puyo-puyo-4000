@@ -49,6 +49,12 @@ const Home: NextPage = () => {
     }
   }, [windowSize.width, windowSize.height, setScreen]);
 
+  useKeyPress(' ', [gameState], () => {
+    if (gameState === 'idle') {
+      startGame();
+    }
+  });
+
   useKeyPress('ArrowLeft', [gameState], () => {
     if (gameState !== 'paused') {
       movePuyos('left');

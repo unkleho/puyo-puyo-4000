@@ -240,13 +240,6 @@ export const useStore = create<Store>((set) => ({
     }),
   movePuyos: (direction, type = 'user') => {
     set((state) => {
-      // if (type === 'user' && state.gameState === 'paused') {
-      //   return {
-      //     grid: state.grid,
-      //     gameState: state.gameState,
-      //   };
-      // }
-
       const grid = cloneGrid(state.grid);
       const [puyo1Id, puyo2Id] = state.userPuyoIds;
       const [puyo1Column, puyo1Row] = getPuyoPosition(state.grid, puyo1Id);
