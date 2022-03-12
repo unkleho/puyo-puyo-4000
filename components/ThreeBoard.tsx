@@ -42,15 +42,22 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const userPuyoIds = useStore((store) => store.userPuyoIds);
   const setCellSize = useStore((store) => store.setCellSize);
   const screen = useStore((store) => store.screen);
-  const puyoMoveType = useStore((store) => store.puyoMoveType);
+  // const puyoMoveType = useStore((store) => store.puyoMoveType);
+  const [ref, bounds] = useMeasure();
 
   // console.log(puyoIdsToClear);
 
   const boardPadding = 10;
 
   // Calculate width/height of board based on screen size and surrounding ui
-  const widthAdjust = 90;
-  const heightAdjust = 190;
+  const widthAdjust = 16 + 48 + 16 + 16 + 48 + 16;
+  const heightAdjust = 16 + 128 + 16 + 16;
+  // const width = screen.width - widthAdjust;
+
+  const isWide =
+    screen.height - heightAdjust < (screen.width - widthAdjust) * 2;
+  console.log('isWide', isWide);
+
   const width =
     screen.height - heightAdjust < (screen.width - widthAdjust) * 2
       ? (screen.height - heightAdjust) / 2
@@ -59,6 +66,9 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 
   // Work out cellSize based on width of board
   const cellSize = (width - boardPadding) / 6;
+
+  console.log('Board', width, height);
+  // console.log('Measure', bounds.width, bounds.height);
 
   React.useEffect(() => {
     setCellSize(cellSize);
@@ -74,6 +84,7 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         height,
         backgroundColor: stone950,
       }}
+      ref={ref}
     >
       <Canvas
         orthographic={true}

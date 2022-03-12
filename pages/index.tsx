@@ -128,10 +128,40 @@ const Home: NextPage = () => {
 
   return (
     <main className={'h-full  bg-stone-900 p-4 md:flex md:justify-center'}>
-      <div className="game h-full gap-4">
-        <div className="flex md:justify-center">
-          <div className="relative h-full overflow-hidden">
-            <ThreeBoard grid={grid} className="board" />
+      <div className="h-full">
+        <div className="game h-full gap-4">
+          <div className=" flex w-12 flex-col">
+            <h1
+              className="mt-[-0.2em] ml-[-0.1em] uppercase leading-none tracking-widest"
+              style={{
+                fontSize: '1.15em',
+              }}
+            >
+              Puyo Puyo
+            </h1>
+
+            <p
+              className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"
+              style={{
+                writingMode: 'vertical-lr',
+              }}
+            >
+              <span className="inline-block translate-x-[-0.1em] text-xs leading-none text-stone-500">
+                Score
+              </span>
+              <span
+                className="mb-0 inline-block translate-x-[-0.14em] text-3xl font-semibold tabular-nums leading-none"
+                style={{
+                  minHeight: '7rem',
+                }}
+              >
+                <Score score={score} />
+              </span>
+            </p>
+          </div>
+
+          <div className="relative flex h-full justify-center overflow-hidden">
+            <ThreeBoard grid={grid} className="board mt-auto overflow-hidden" />
             {/* <Board grid={grid} className="" /> */}
 
             <Alert onClick={() => startGame()} isActive={gameState === 'idle'}>
@@ -142,7 +172,7 @@ const Home: NextPage = () => {
             </Alert>
           </div>
 
-          <div className="ml-4 flex flex-col justify-between">
+          <div className="flex w-12 flex-col justify-between">
             <ThreeQueue className="mr-4 border-t border-b border-stone-700" />
             {/* <Queue /> */}
 
@@ -198,33 +228,8 @@ const Home: NextPage = () => {
             </div>
           </div>
 
-          <div className="ml-auto flex w-12 flex-col">
-            <h1 className="mt-[-0.2em] text-right uppercase leading-none tracking-widest">
-              Puyo Puyo
-            </h1>
-
-            <p
-              className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"
-              style={{
-                writingMode: 'vertical-rl',
-              }}
-            >
-              <span className="inline-block translate-x-[0.1em] text-xs leading-none text-stone-500">
-                Score
-              </span>
-              <span
-                className="mb-0 inline-block translate-x-[0.23em] text-3xl font-semibold tabular-nums leading-none"
-                style={{
-                  minHeight: '7rem',
-                }}
-              >
-                <Score score={score} />
-              </span>
-            </p>
-          </div>
+          <ControlButtons className="col-span-3" />
         </div>
-
-        <ControlButtons />
       </div>
 
       {/* 
@@ -234,7 +239,7 @@ const Home: NextPage = () => {
       <style jsx>{`
         .game {
           display: grid;
-          grid-template-columns: 1fr;
+          grid-template-columns: auto 1fr auto;
           grid-template-rows: auto 1fr;
         }
       `}</style>

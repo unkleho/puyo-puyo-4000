@@ -1,19 +1,24 @@
+import React from 'react';
 import useDeviceDetect from '../hooks/use-device-detect';
 import { useStore } from '../store/store';
 import { Icon } from './Icon';
+
+type Props = {
+  className?: string;
+};
 
 type ControlButtonProps = {
   className?: string;
   onClick?: Function;
 };
 
-export const ControlButtons = () => {
+export const ControlButtons: React.FC<Props> = ({ className }) => {
   const movePuyos = useStore((store) => store.movePuyos);
   const rotatePuyos = useStore((store) => store.rotatePuyos);
   const tickSpeed = useStore((store) => store.tickSpeed);
 
   return (
-    <div className="control-buttons gap-2">
+    <div className={['control-buttons gap-2', className || ''].join(' ')}>
       <ControlButton
         className="col-span-1 col-start-2"
         onClick={() => rotatePuyos()}
