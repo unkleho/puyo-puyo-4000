@@ -54,21 +54,18 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const heightAdjust = 16 + 128 + 16 + 16;
   // const width = screen.width - widthAdjust;
 
-  const isWide =
+  const baseWidthOnHeight =
     screen.height - heightAdjust < (screen.width - widthAdjust) * 2;
-  console.log('isWide', isWide);
 
-  const width =
-    screen.height - heightAdjust < (screen.width - widthAdjust) * 2
-      ? (screen.height - heightAdjust) / 2
-      : screen.width - widthAdjust;
+  const width = baseWidthOnHeight
+    ? (screen.height - heightAdjust) / 2
+    : screen.width - widthAdjust;
   const height = width * 2 - boardPadding;
 
   // Work out cellSize based on width of board
   const cellSize = (width - boardPadding) / 6;
 
   console.log('Board', width, height);
-  // console.log('Measure', bounds.width, bounds.height);
 
   React.useEffect(() => {
     setCellSize(cellSize);
