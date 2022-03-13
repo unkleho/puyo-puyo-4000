@@ -1,11 +1,12 @@
 export type IconName =
   | 'down'
   | 'left'
-  | 'right'
+  | 'menu'
   | 'play'
   | 'pause'
-  | 'rotate'
-  | 'return-up-back';
+  | 'return-up-back'
+  | 'right'
+  | 'rotate';
 
 type Props = {
   name: IconName;

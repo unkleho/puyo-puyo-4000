@@ -128,108 +128,108 @@ const Home: NextPage = () => {
 
   return (
     <main className={'h-full  bg-stone-900 p-4 md:flex md:justify-center'}>
-      <div className="h-full">
-        <div className="game h-full gap-4">
-          <div className=" flex w-12 flex-col">
-            <h1
-              className="mt-[-0.2em] ml-[-0.1em] uppercase leading-none tracking-widest"
-              style={{
-                fontSize: '1.15em',
-              }}
-            >
-              Puyo Puyo
-            </h1>
+      <div className="game h-full gap-4">
+        <div className="flex w-12 flex-col">
+          <h1
+            className="mt-[-0.2em] ml-[-0.1em] uppercase leading-none tracking-widest"
+            style={{
+              fontSize: '1.15em',
+            }}
+          >
+            Puyo Puyo
+          </h1>
 
-            <p
-              className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"
+          {/* <ButtonIcon name="menu" className="mt-4" onClick={() => {}} /> */}
+
+          <p
+            className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"
+            style={{
+              writingMode: 'vertical-lr',
+            }}
+          >
+            <span className="inline-block translate-x-[-0.1em] text-xs leading-none text-stone-500">
+              Score
+            </span>
+            <span
+              className="mb-0 inline-block translate-x-[-0.14em] text-3xl font-semibold tabular-nums leading-none"
               style={{
-                writingMode: 'vertical-lr',
+                minHeight: '7rem',
               }}
             >
-              <span className="inline-block translate-x-[-0.1em] text-xs leading-none text-stone-500">
-                Score
-              </span>
-              <span
-                className="mb-0 inline-block translate-x-[-0.14em] text-3xl font-semibold tabular-nums leading-none"
-                style={{
-                  minHeight: '7rem',
-                }}
-              >
-                <Score score={score} />
-              </span>
+              <Score score={score} />
+            </span>
+          </p>
+        </div>
+
+        <div className="relative flex h-full justify-center overflow-hidden">
+          <ThreeBoard grid={grid} className="board mt-auto overflow-hidden" />
+          {/* <Board grid={grid} className="" /> */}
+
+          <Alert onClick={() => startGame()} isActive={gameState === 'idle'}>
+            Start
+          </Alert>
+          <Alert onClick={() => startGame()} isActive={gameState === 'lose'}>
+            Play again
+          </Alert>
+        </div>
+
+        <div className="flex w-12 flex-col justify-between">
+          <ThreeQueue className="mr-4 border-t border-b border-stone-700" />
+          {/* <Queue /> */}
+
+          <div className="mb-auto mt-2 text-left">
+            <p className="text-xs uppercase tracking-widest text-stone-500">
+              Lvl
+            </p>
+            <p className="mb-1 text-lg font-bold uppercase tracking-widest">
+              {level}
+            </p>
+            <p className="text-xs uppercase tracking-widest text-stone-500">
+              Chns
+            </p>
+            <p className="text-lg font-bold uppercase tracking-widest">
+              {totalChainCount}
             </p>
           </div>
 
-          <div className="relative flex h-full justify-center overflow-hidden">
-            <ThreeBoard grid={grid} className="board mt-auto overflow-hidden" />
-            {/* <Board grid={grid} className="" /> */}
+          <div className="flex flex-col space-y-4">
+            {gameState !== 'idle' && (
+              <ButtonIcon
+                name="return-up-back"
+                onClick={() => {
+                  idleGame();
+                }}
+                className=""
+              ></ButtonIcon>
+            )}
 
-            <Alert onClick={() => startGame()} isActive={gameState === 'idle'}>
-              Start
-            </Alert>
-            <Alert onClick={() => startGame()} isActive={gameState === 'lose'}>
-              Play again
-            </Alert>
+            {gameState === 'idle' ||
+            gameState === 'paused' ||
+            gameState === 'lose' ? (
+              <ButtonIcon
+                name="play"
+                onClick={() => {
+                  if (gameState === 'paused') {
+                    togglePauseGame();
+                  } else {
+                    startGame();
+                  }
+                }}
+                className=""
+              ></ButtonIcon>
+            ) : (
+              <ButtonIcon
+                name="pause"
+                onClick={() => togglePauseGame()}
+                className="uppercase"
+              >
+                <Icon name="pause" />
+              </ButtonIcon>
+            )}
           </div>
-
-          <div className="flex w-12 flex-col justify-between">
-            <ThreeQueue className="mr-4 border-t border-b border-stone-700" />
-            {/* <Queue /> */}
-
-            <div className="mb-auto mt-2 text-left">
-              <p className="text-xs uppercase tracking-widest text-stone-500">
-                Lvl
-              </p>
-              <p className="mb-1 text-lg font-bold uppercase tracking-widest">
-                {level}
-              </p>
-              <p className="text-xs uppercase tracking-widest text-stone-500">
-                Chns
-              </p>
-              <p className="text-lg font-bold uppercase tracking-widest">
-                {totalChainCount}
-              </p>
-            </div>
-
-            <div className="flex flex-col space-y-4">
-              {gameState !== 'idle' && (
-                <ButtonIcon
-                  name="return-up-back"
-                  onClick={() => {
-                    idleGame();
-                  }}
-                  className=""
-                ></ButtonIcon>
-              )}
-
-              {gameState === 'idle' ||
-              gameState === 'paused' ||
-              gameState === 'lose' ? (
-                <ButtonIcon
-                  name="play"
-                  onClick={() => {
-                    if (gameState === 'paused') {
-                      togglePauseGame();
-                    } else {
-                      startGame();
-                    }
-                  }}
-                  className=""
-                ></ButtonIcon>
-              ) : (
-                <ButtonIcon
-                  name="pause"
-                  onClick={() => togglePauseGame()}
-                  className="uppercase"
-                >
-                  <Icon name="pause" />
-                </ButtonIcon>
-              )}
-            </div>
-          </div>
-
-          <ControlButtons className="col-span-3" />
         </div>
+
+        <ControlButtons className="col-span-3" />
       </div>
 
       {/* 
