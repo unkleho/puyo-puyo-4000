@@ -90,9 +90,12 @@ export type Store = {
     width: number;
     height: number;
   };
+  /** Padding referenced from a DOM element with Tailwind responsive width. Use this to responsively work out board dimensions. */
+  padding: number;
   // Testing this out
   puyoMoveType: PuyoMoveType | null;
   setScreen: (width: number, height: number) => void;
+  setPadding: (padding: number) => void;
   startGame: () => void;
   togglePauseGame: () => void;
   loseGame: () => void;
@@ -134,13 +137,20 @@ export const useStore = create<Store>((set) => ({
     width: 0,
     height: 0,
   },
+  padding: 16,
   puyoMoveType: null,
   setScreen: (width, height) =>
     set(() => {
-      console.log(width, height);
+      // console.log(width, height);
 
       return {
         screen: { width, height },
+      };
+    }),
+  setPadding: (padding) =>
+    set(() => {
+      return {
+        padding,
       };
     }),
   startGame: () =>

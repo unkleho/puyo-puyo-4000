@@ -2,7 +2,7 @@ import type { NextPage } from 'next';
 import React, { useEffect } from 'react';
 import { Alert } from '../components/Alert';
 // import { MemoBoard as Board } from '../components/Board';
-import { ButtonIcon } from '../components/ButtonIcon';
+import { IconButton } from '../components/IconButton';
 import { ControlButtons } from '../components/ControlButtons';
 import { Icon } from '../components/Icon';
 import { Score } from '../components/Score';
@@ -12,6 +12,7 @@ import { ThreeQueue } from '../components/ThreeQueue';
 import { useKeyPress } from '../hooks/use-key-press';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useStore } from '../store/store';
+import useMeasure from 'react-use-measure';
 
 const collapsePuyosTimeout = 400;
 const clearPuyosTimeout = 400;
@@ -26,6 +27,7 @@ const Home: NextPage = () => {
   const level = useStore((store) => store.level);
 
   const setScreen = useStore((store) => store.setScreen);
+  const setPadding = useStore((store) => store.setPadding);
 
   const startGame = useStore((store) => store.startGame);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
@@ -39,6 +41,12 @@ const Home: NextPage = () => {
   const landedPuyos = useStore((store) => store.landedPuyos);
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
+
+  const [paddingRef, { width }] = useMeasure();
+  useEffect(() => {
+    console.log('paddingRef', width);
+    setPadding(width);
+  }, [width, setPadding]);
 
   const windowSize = useWindowSize();
   // iPhone Mini Viewport 375 x 610
@@ -127,7 +135,12 @@ const Home: NextPage = () => {
   ]);
 
   return (
-    <main className={'h-full  bg-stone-900 p-4 md:flex md:justify-center'}>
+    <main
+      className={'h-full bg-stone-900 p-4 md:flex md:justify-center md:p-8'}
+    >
+      {/* Special div that updates padding state based on Tailwind responsive classes */}
+      <div className="absolute w-4 md:w-8" ref={paddingRef}></div>
+
       <div className="game h-full gap-4">
         <div className="flex w-12 flex-col">
           <h1
@@ -139,7 +152,7 @@ const Home: NextPage = () => {
             Puyo Puyo
           </h1>
 
-          {/* <ButtonIcon name="menu" className="mt-4" onClick={() => {}} /> */}
+          {/* <IconButton name="menu" className="mt-4" onClick={() => {}} /> */}
 
           <p
             className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"
@@ -194,19 +207,19 @@ const Home: NextPage = () => {
 
           <div className="flex flex-col space-y-4">
             {gameState !== 'idle' && (
-              <ButtonIcon
+              <IconButton
                 name="return-up-back"
                 onClick={() => {
                   idleGame();
                 }}
                 className=""
-              ></ButtonIcon>
+              ></IconButton>
             )}
 
             {gameState === 'idle' ||
             gameState === 'paused' ||
             gameState === 'lose' ? (
-              <ButtonIcon
+              <IconButton
                 name="play"
                 onClick={() => {
                   if (gameState === 'paused') {
@@ -216,15 +229,15 @@ const Home: NextPage = () => {
                   }
                 }}
                 className=""
-              ></ButtonIcon>
+              ></IconButton>
             ) : (
-              <ButtonIcon
+              <IconButton
                 name="pause"
                 onClick={() => togglePauseGame()}
                 className="uppercase"
               >
                 <Icon name="pause" />
-              </ButtonIcon>
+              </IconButton>
             )}
           </div>
         </div>

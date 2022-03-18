@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512">
 
   <symbol id="down">
+    <title id="icon-title">Down</title>
     <path
       fill="none"
       stroke="currentColor"
@@ -12,6 +13,7 @@
   </symbol>
 
   <symbol id="left">
+    <title id="icon-title">Left</title>
     <path
       fill="none"
       stroke="currentColor"
@@ -23,6 +25,7 @@
   </symbol>
 
   <symbol id="menu">
+    <title id="icon-title">Menu</title>
     <path
       fill="none"
       stroke="currentColor"
@@ -34,6 +37,7 @@
   </symbol>
 
   <symbol id="play">
+    <title id="icon-title">Play</title>
     <path
       fill="currentColor"
       d="M133 440a35.37 35.37 0 01-17.5-4.67c-12-6.8-19.46-20-19.46-34.33V111c0-14.37 7.46-27.53 19.46-34.33a35.13 35.13 0 0135.77.45l247.85 148.36a36 36 0 010 61l-247.89 148.4A35.5 35.5 0 01133 440z"
@@ -41,6 +45,7 @@
   </symbol>
 
   <symbol id="pause">
+    <title id="icon-title">Pause</title>
     <path
       fill="currentColor"
       d="M208 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16zM352 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16z"
@@ -48,6 +53,7 @@
   </symbol>
 
   <symbol id="return-up-back">
+    <title id="icon-title">Return up back</title>    
     <path
       fill="none"
       stroke="currentColor"
@@ -66,6 +72,7 @@
   </symbol>
 
   <symbol id="right">
+    <title id="icon-title">Right</title>
     <path
       fill="none"
       stroke="currentColor"
@@ -77,6 +84,7 @@
   </symbol>
 
   <symbol id="rotate">
+    <title id="icon-title">Rotate</title>
     <path
       d="M320 146s24.36-12-64-12a160 160 0 10160 160"
       fill="none"

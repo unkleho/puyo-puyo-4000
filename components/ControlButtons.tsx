@@ -64,7 +64,6 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   children,
   onClick,
 }) => {
-  // const cellSize = useStore((store) => store.cellSize);
   const isMobile = useDeviceDetect();
 
   return (
@@ -73,9 +72,6 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
         'flex touch-manipulation select-none items-center justify-center border-t  border-stone-700 bg-stone-900 p-4 text-center active:bg-stone-700',
         className || '',
       ].join(' ')}
-      // style={{
-      //   borderRadius: cellSize / 2,
-      // }}
       onClick={() => {
         if (!isMobile) {
           onClick?.();

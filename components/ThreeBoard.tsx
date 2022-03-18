@@ -42,17 +42,15 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const userPuyoIds = useStore((store) => store.userPuyoIds);
   const setCellSize = useStore((store) => store.setCellSize);
   const screen = useStore((store) => store.screen);
+  const padding = useStore((store) => store.padding);
   // const puyoMoveType = useStore((store) => store.puyoMoveType);
   const [ref, bounds] = useMeasure();
 
-  // console.log(puyoIdsToClear);
-
   const boardPadding = 10;
 
-  // Calculate width/height of board based on screen size and surrounding ui
-  const widthAdjust = 16 + 48 + 16 + 16 + 48 + 16;
-  const heightAdjust = 16 + 128 + 16 + 16;
-  // const width = screen.width - widthAdjust;
+  // Calculate width/height of board based on screen size, surrounding ui and global padding
+  const widthAdjust = padding + 48 + 16 + 16 + 48 + padding;
+  const heightAdjust = padding + 128 + 16 + padding;
 
   const baseWidthOnHeight =
     screen.height - heightAdjust < (screen.width - widthAdjust) * 2;

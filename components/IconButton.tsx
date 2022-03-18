@@ -6,10 +6,11 @@ type Props = {
   onClick: () => void;
 };
 
-export const ButtonIcon: React.FC<Props> = ({ name, className, onClick }) => {
+export const IconButton: React.FC<Props> = ({ name, className, onClick }) => {
   return (
     <button
       onClick={onClick}
+      aria-label={name}
       className={[
         'flex h-12 w-12 items-center justify-center border border-stone-700 uppercase',
         className || '',
