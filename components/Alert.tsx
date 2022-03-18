@@ -102,7 +102,7 @@ export const Alert: React.FC<Props> = ({
           </svg>
 
           <motion.span
-            className="absolute top-[50%] left-[50%] "
+            className="absolute top-[50%] left-[50%]"
             initial={{
               opacity: 0,
             }}

@@ -412,6 +412,13 @@ export const useStore = create<Store>((set) => ({
             grid[puyo2Row][puyo2Column] = null;
             grid[puyo1Row][puyo1Column - 1] = puyo1Id;
             grid[puyo1Row][puyo1Column] = puyo2Id;
+          } else if (
+            grid[puyo1Row][puyo1Column + 1] &&
+            grid[puyo1Row][puyo1Column - 1]
+          ) {
+            // No room on either side, so flip puyos
+            grid[puyo2Row][puyo2Column] = puyo1Id;
+            grid[puyo1Row][puyo1Column] = puyo2Id;
           }
         } else if (puyo2Position === 'right') {
           if (grid[puyo1Row + 1] && grid[puyo1Row + 1][puyo1Column] === null) {
@@ -433,6 +440,13 @@ export const useStore = create<Store>((set) => ({
             // There is room on right, so rotate and shift both puyos
             grid[puyo2Row][puyo2Column] = null;
             grid[puyo1Row][puyo1Column + 1] = puyo1Id;
+            grid[puyo1Row][puyo1Column] = puyo2Id;
+          } else if (
+            grid[puyo2Row][puyo2Column + 1] &&
+            grid[puyo2Row][puyo2Column - 1]
+          ) {
+            // No room on either side, so flip puyos
+            grid[puyo2Row][puyo2Column] = puyo1Id;
             grid[puyo1Row][puyo1Column] = puyo2Id;
           }
         } else if (puyo2Position === 'left') {
