@@ -413,8 +413,8 @@ export const useStore = create<Store>((set) => ({
             grid[puyo1Row][puyo1Column - 1] = puyo1Id;
             grid[puyo1Row][puyo1Column] = puyo2Id;
           } else if (
-            grid[puyo1Row][puyo1Column + 1] &&
-            grid[puyo1Row][puyo1Column - 1]
+            grid[puyo1Row][puyo1Column + 1] !== null &&
+            grid[puyo1Row][puyo1Column - 1] !== null
           ) {
             // No room on either side, so flip puyos
             grid[puyo2Row][puyo2Column] = puyo1Id;
@@ -442,8 +442,8 @@ export const useStore = create<Store>((set) => ({
             grid[puyo1Row][puyo1Column + 1] = puyo1Id;
             grid[puyo1Row][puyo1Column] = puyo2Id;
           } else if (
-            grid[puyo2Row][puyo2Column + 1] &&
-            grid[puyo2Row][puyo2Column - 1]
+            grid[puyo2Row][puyo2Column + 1] !== null &&
+            grid[puyo2Row][puyo2Column - 1] !== null
           ) {
             // No room on either side, so flip puyos
             grid[puyo2Row][puyo2Column] = puyo1Id;
