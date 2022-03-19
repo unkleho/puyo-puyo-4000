@@ -1,5 +1,5 @@
 import type { NextPage } from 'next';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Alert } from '../components/Alert';
 // import { MemoBoard as Board } from '../components/Board';
 import { IconButton } from '../components/IconButton';
@@ -17,6 +17,8 @@ import useMeasure from 'react-use-measure';
 const collapsePuyosTimeout = 400;
 const clearPuyosTimeout = 400;
 const landingPuyosTimeout = 300;
+
+const localWindow = typeof window === 'undefined' ? null : window;
 
 const Home: NextPage = () => {
   const grid = useStore((store) => store.grid);
@@ -42,11 +44,19 @@ const Home: NextPage = () => {
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
 
-  const [paddingRef, { width }] = useMeasure();
+  // Measure padding on <main> to use set ThreeBoard canvas width/height
+  const mainRef = useRef<HTMLDivElement>(null);
+  const mainComputedStyle = mainRef.current
+    ? localWindow?.getComputedStyle(mainRef.current as Element)
+    : null;
+  const mainPaddingPx = mainComputedStyle?.padding;
+
   useEffect(() => {
-    console.log('paddingRef', width);
-    setPadding(width);
-  }, [width, setPadding]);
+    if (mainPaddingPx) {
+      const mainPadding = parseInt(mainPaddingPx.replace('px', ''));
+      setPadding(mainPadding);
+    }
+  }, [mainPaddingPx, setPadding]);
 
   const windowSize = useWindowSize();
   // iPhone Mini Viewport 375 x 610
@@ -137,10 +147,8 @@ const Home: NextPage = () => {
   return (
     <main
       className={'h-full bg-stone-900 p-4 md:flex md:justify-center md:p-8'}
+      ref={mainRef}
     >
-      {/* Special div that updates padding state based on Tailwind responsive classes */}
-      <div className="absolute w-4 md:w-8" ref={paddingRef}></div>
-
       <div className="game h-full gap-4">
         <div className="flex w-12 flex-col">
           <h1

@@ -43,10 +43,11 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   const setCellSize = useStore((store) => store.setCellSize);
   const screen = useStore((store) => store.screen);
   const padding = useStore((store) => store.padding);
-  // const puyoMoveType = useStore((store) => store.puyoMoveType);
   const [ref, bounds] = useMeasure();
 
   const boardPadding = 10;
+
+  // console.log('padding', padding);
 
   // Calculate width/height of board based on screen size, surrounding ui and global padding
   const widthAdjust = padding + 48 + 16 + 16 + 48 + padding;
