@@ -54,6 +54,9 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
         y,
         scale: type === 'to-clear' ? 0.005 : 1,
       }}
+      transition={{
+        delay: type === 'to-clear' ? Math.random() * 0.1 : 0,
+      }}
       // TODO: Experiment with smooth drop
       // transition={
       //   !moveType

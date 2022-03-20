@@ -27,7 +27,7 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
       </ControlButton>
 
       <ControlButton
-        className="row-span-2 row-start-1"
+        className="row-span-2 row-start-1 border-b"
         onClick={() => movePuyos('left')}
       >
         <Icon name="left" />
@@ -38,15 +38,15 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
       </ControlButton>
 
       <ControlButton
-        className="row-span-2 row-start-1"
+        className="row-span-2 row-start-1 border-b"
         onClick={() => movePuyos('right')}
       >
         <Icon name="right" />
       </ControlButton>
 
-      <p className="absolute bottom-0 mb-3 text-xs uppercase tracking-widest text-stone-700">
+      {/* <p className="absolute bottom-0 mb-3 text-xs uppercase tracking-widest text-stone-700">
         {tickSpeed}
-      </p>
+      </p> */}
 
       <style jsx>{`
         .control-buttons {

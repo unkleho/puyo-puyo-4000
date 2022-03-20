@@ -4,22 +4,26 @@ import useMeasure from 'react-use-measure';
 
 type Props = {
   cornerRatio?: number;
+  cornerSize?: number;
 };
 
-export const SVGBox: React.FC<Props> = ({ cornerRatio = 0.1 }) => {
-  // Use widh and height to work out corner bevels
-  const [ref, { width, height }] = useMeasure();
+export const SVGBox: React.FC<Props> = ({
+  cornerRatio = 0.1,
+  cornerSize = 16,
+}) => {
+  // Use use container to set width and height of SVG
+  const [containerRef, { width, height }] = useMeasure();
 
   // Ensure 45 angle
   const cornerHeightRatio = (width / height) * cornerRatio;
 
-  const cornerStartWidth = width * cornerRatio;
-  const cornerStartHeight = height * cornerHeightRatio;
-  const cornerEndWidth = width * (1 - cornerRatio);
-  const cornerEndHeight = height * (1 - cornerHeightRatio);
+  const cornerStartWidth = cornerSize;
+  const cornerStartHeight = cornerSize;
+  const cornerEndWidth = width - cornerSize;
+  const cornerEndHeight = height - cornerSize;
 
   return (
-    <motion.span ref={ref} className="relative block h-full w-full">
+    <motion.span ref={containerRef} className="relative block h-full w-full">
       <motion.svg
         className="absolute inset-0 h-full w-full"
         viewBox="0 0"
@@ -53,16 +57,16 @@ export const SVGBox: React.FC<Props> = ({ cornerRatio = 0.1 }) => {
 
         {[
           `M 0 ${
-            height * 0.45
+            height / 2 - cornerSize / 2
           } L 0 ${cornerStartHeight} L ${cornerStartWidth} 0`,
           `M 0 ${
-            height * 0.55
+            height / 2 + cornerSize / 2
           } L 0 ${cornerEndHeight} L ${cornerStartWidth} ${height}`,
           `M ${width} ${
-            height * 0.45
+            height / 2 - cornerSize / 2
           } L ${width} ${cornerStartHeight} L ${cornerEndWidth} 0`,
           `M ${width} ${
-            height * 0.55
+            height / 2 + cornerSize / 2
           } L ${width} ${cornerEndHeight} L ${cornerEndWidth} ${height}`,
         ].map((d, i) => {
           return (
@@ -71,7 +75,7 @@ export const SVGBox: React.FC<Props> = ({ cornerRatio = 0.1 }) => {
               // stone-700
               // stroke="rgb(65 64 60)"
               stroke="rgb(95 94 90)"
-              strokeWidth={1.5}
+              strokeWidth={1}
               fill="none"
               initial={{
                 pathLength: 0,
@@ -84,6 +88,7 @@ export const SVGBox: React.FC<Props> = ({ cornerRatio = 0.1 }) => {
               }}
               transition={{
                 duration: 0.5,
+                ease: 'easeInOut',
               }}
               key={i}
             ></motion.path>

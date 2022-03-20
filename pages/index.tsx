@@ -1,5 +1,5 @@
 import type { NextPage } from 'next';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert } from '../components/Alert';
 // import { MemoBoard as Board } from '../components/Board';
 import { IconButton } from '../components/IconButton';
@@ -12,8 +12,6 @@ import { ThreeQueue } from '../components/ThreeQueue';
 import { useKeyPress } from '../hooks/use-key-press';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useStore } from '../store/store';
-import useMeasure from 'react-use-measure';
-import { SVGBox } from '../components/SVGBox';
 import { Dialog } from '../components/Dialog';
 
 const collapsePuyosTimeout = 400;
@@ -45,6 +43,8 @@ const Home: NextPage = () => {
   const landedPuyos = useStore((store) => store.landedPuyos);
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
+
+  const [isDialogOpen, setDialogOpen] = useState(false);
 
   // Measure padding on <main> to use set ThreeBoard canvas width/height
   const mainRef = useRef<HTMLDivElement>(null);
@@ -160,10 +160,17 @@ const Home: NextPage = () => {
                 fontSize: '1.15em',
               }}
             >
-              Puyo Puyo
+              Puyo Puyo{' '}
+              <span className="mr-[-0.2em] mt-[-0.1em] block text-left text-xs text-stone-500">
+                4000
+              </span>
             </h1>
 
-            {/* <IconButton name="menu" className="mt-4" onClick={() => {}} /> */}
+            <IconButton
+              name="menu"
+              className="mt-4"
+              onClick={() => setDialogOpen(true)}
+            />
 
             <p
               className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"
@@ -269,17 +276,18 @@ const Home: NextPage = () => {
         `}</style>
       </main>
 
-      {/* <Dialog>
-        <div className="uppercase tracking-widest">
+      <Dialog onClose={() => setDialogOpen(false)} isActive={isDialogOpen}>
+        <div className="space-y-4 uppercase tracking-widest">
           <h1 className="text-xl uppercase tracking-widest">Puyo Puyo 4000</h1>
           <p>By Unkle Ho</p>
+          <p>Open source Puyo Puyo clone</p>
           <p>
-            Built with React, Next JS, React Three Fiber, Zustand and Framer
+            Built with React, Next JS, React Three Fiber, Zustand & Framer
             Motion.
           </p>
-          <p>GitHub</p>
+          <p>github.com/unkleho/puyo-puyo</p>
         </div>
-      </Dialog> */}
+      </Dialog>
     </>
   );
 };
