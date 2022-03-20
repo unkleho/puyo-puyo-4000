@@ -31,7 +31,7 @@ export const Alert: React.FC<Props> = ({
     <AnimatePresence>
       {isActive && (
         <button
-          className="absolute top-[50%] left-[50%] text-center uppercase leading-none tracking-widest hover:text-fuchsia-600"
+          className="absolute top-[50%] left-[50%] text-center uppercase leading-none tracking-widest transition-colors hover:text-fuchsia-600"
           style={{
             transform: 'translate(-50%, -50%)',
             width,

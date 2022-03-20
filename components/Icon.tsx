@@ -12,9 +12,10 @@ export type IconName =
 type Props = {
   name: IconName;
   size?: 'sm' | 'base';
+  className?: string;
 };
 
-export const Icon: React.FC<Props> = ({ name, size = 'base' }) => {
+export const Icon: React.FC<Props> = ({ name, size = 'base', className }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -23,6 +24,7 @@ export const Icon: React.FC<Props> = ({ name, size = 'base' }) => {
         'text-stone-300',
         size === 'base' ? 'w-8' : '',
         size === 'sm' ? 'w-6' : '',
+        className || '',
       ].join(' ')}
       aria-label={name}
     >

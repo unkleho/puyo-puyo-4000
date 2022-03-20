@@ -23,7 +23,7 @@ const localWindow = typeof window === 'undefined' ? null : window;
 
 const Home: NextPage = () => {
   const grid = useStore((store) => store.grid);
-  const gameState = useStore((store) => store.gameState);
+  const localGameState = useStore((store) => store.gameState);
   const tickSpeed = useStore((store) => store.tickSpeed);
   const score = useStore((store) => store.score);
   const totalChainCount = useStore((store) => store.totalChainCount);
@@ -46,6 +46,7 @@ const Home: NextPage = () => {
   const collapsePuyos = useStore((store) => store.collapsePuyos);
 
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const gameState = isDialogOpen ? localGameState === 'paused' : localGameState;
 
   // Measure padding on <main> to use set ThreeBoard canvas width/height
   const mainRef = useRef<HTMLDivElement>(null);
@@ -276,12 +277,12 @@ const Home: NextPage = () => {
             <a href="https://twitter.com/unkleho">Unkle Ho</a>.
           </p>
           <p>
-            Connect four balls of the same colour and they disappear.
-            Deceptively simple, difficult to master.
+            Connect four puyos (balls) of the same colour to make them
+            disappear. Deceptively simple, difficult to master.
           </p>
           <p>
-            Built with React, Next JS, React Three Fiber, Zustand & Framer
-            Motion.
+            Built with React, Next JS, React Three Fiber, Zustand, Framer Motion
+            & Tailwind.
           </p>
           <p>
             Source code:

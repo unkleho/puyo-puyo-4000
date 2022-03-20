@@ -26,14 +26,14 @@ export const Dialog: React.FC<Props> = ({
               opacity: 0,
             }}
             animate={{
-              opacity: 0.9,
+              opacity: 0.7,
             }}
             exit={{
               opacity: 0,
             }}
           />
-          <motion.article className="fixed inset-4">
-            <SVGBox />
+          <motion.article className="fixed inset-4 m-auto max-h-96 max-w-sm">
+            <SVGBox boxFill="black" />
 
             <motion.div
               className="absolute inset-5"

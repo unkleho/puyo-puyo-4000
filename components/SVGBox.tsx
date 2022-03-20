@@ -3,19 +3,16 @@ import React from 'react';
 import useMeasure from 'react-use-measure';
 
 type Props = {
-  cornerRatio?: number;
   cornerSize?: number;
+  boxFill?: 'stone' | 'black';
 };
 
 export const SVGBox: React.FC<Props> = ({
-  cornerRatio = 0.1,
   cornerSize = 16,
+  boxFill = 'stone',
 }) => {
   // Use use container to set width and height of SVG
   const [containerRef, { width, height }] = useMeasure();
-
-  // Ensure 45 angle
-  const cornerHeightRatio = (width / height) * cornerRatio;
 
   const cornerStartWidth = cornerSize;
   const cornerStartHeight = cornerSize;
@@ -43,12 +40,15 @@ export const SVGBox: React.FC<Props> = ({
               L 0 ${cornerEndHeight}
               `}
           // fill="rgb(18 15 13)"
-          className="fill-stone-900"
+          className={[
+            boxFill === 'stone' ? 'fill-stone-900' : '',
+            boxFill === 'black' ? 'fill-black' : '',
+          ].join(' ')}
           initial={{
             opacity: 0,
           }}
           animate={{
-            opacity: 0.9,
+            opacity: 1,
           }}
           exit={{
             opacity: 0,
@@ -78,7 +78,8 @@ export const SVGBox: React.FC<Props> = ({
               d={d}
               // stone-700
               // stroke="rgb(65 64 60)"
-              stroke="rgb(95 94 90)"
+              // stroke="rgb(95 94 90)"
+              className="stroke-stone-700"
               strokeWidth={1}
               fill="none"
               initial={{

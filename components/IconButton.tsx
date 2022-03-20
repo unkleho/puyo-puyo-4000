@@ -1,4 +1,6 @@
+import { motion } from 'framer-motion';
 import { Icon, IconName } from './Icon';
+import { SVGBox } from './SVGBox';
 
 type Props = {
   name: IconName;
@@ -9,12 +11,12 @@ type Props = {
 
 export const IconButton: React.FC<Props> = ({
   name,
-  showBorder = true,
+  showBorder = false,
   className,
   onClick,
 }) => {
   return (
-    <button
+    <motion.button
       onClick={onClick}
       aria-label={name}
       className={[
@@ -22,8 +24,24 @@ export const IconButton: React.FC<Props> = ({
         showBorder ? 'border border-stone-700' : '',
         className || '',
       ].join(' ')}
+      initial={{
+        opacity: 0,
+      }}
+      animate={{
+        opacity: 1,
+      }}
+      exit={{
+        opacity: 0,
+      }}
     >
-      <Icon name={name} size="sm" />
-    </button>
+      {/* <SVGBox cornerSize={8} /> */}
+      {/* <span className="absolute"> */}
+      <Icon
+        name={name}
+        size="sm"
+        className="transition-colors hover:text-fuchsia-600"
+      />
+      {/* </span> */}
+    </motion.button>
   );
 };
