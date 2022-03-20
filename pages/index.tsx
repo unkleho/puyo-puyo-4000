@@ -13,6 +13,7 @@ import { useKeyPress } from '../hooks/use-key-press';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useStore } from '../store/store';
 import { Dialog } from '../components/Dialog';
+import { PuyoPuyoLogo } from '../components/PuyoPuyoLogo';
 
 const collapsePuyosTimeout = 400;
 const clearPuyosTimeout = 400;
@@ -154,17 +155,7 @@ const Home: NextPage = () => {
       >
         <div className="game h-full gap-4">
           <div className="flex w-12 flex-col">
-            <h1
-              className="mt-[-0.2em] ml-[-0.1em] uppercase leading-none tracking-widest"
-              style={{
-                fontSize: '1.15em',
-              }}
-            >
-              Puyo Puyo{' '}
-              <span className="mr-[-0.2em] mt-[-0.1em] block text-left text-xs text-stone-500">
-                4000
-              </span>
-            </h1>
+            <PuyoPuyoLogo />
 
             <IconButton
               name="menu"
@@ -277,15 +268,28 @@ const Home: NextPage = () => {
       </main>
 
       <Dialog onClose={() => setDialogOpen(false)} isActive={isDialogOpen}>
-        <div className="space-y-4 uppercase tracking-widest">
-          <h1 className="text-xl uppercase tracking-widest">Puyo Puyo 4000</h1>
-          <p>By Unkle Ho</p>
-          <p>Open source Puyo Puyo clone</p>
+        <div className="space-y-4 text-stone-300">
+          <PuyoPuyoLogo fontSize="1.4em" />
+          <p className=""></p>
+          <p>
+            Open source experimental Puyo Puyo clone by{' '}
+            <a href="https://twitter.com/unkleho">Unkle Ho</a>.
+          </p>
+          <p>
+            Connect four balls of the same colour and they disappear.
+            Deceptively simple, difficult to master.
+          </p>
           <p>
             Built with React, Next JS, React Three Fiber, Zustand & Framer
             Motion.
           </p>
-          <p>github.com/unkleho/puyo-puyo</p>
+          <p>
+            Source code:
+            <br />
+            <a href="http://github.com/unkleho/puyo-puyo">
+              github.com/unkleho/puyo-puyo
+            </a>
+          </p>
         </div>
       </Dialog>
     </>

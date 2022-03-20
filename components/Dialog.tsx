@@ -1,4 +1,4 @@
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import React from 'react';
 import { IconButton } from './IconButton';
 import { SVGBox } from './SVGBox';
@@ -20,13 +20,35 @@ export const Dialog: React.FC<Props> = ({
     <AnimatePresence>
       {isActive && (
         <>
-          <div
+          <motion.div
             className={['fixed inset-0 bg-black', className || ''].join(' ')}
-          ></div>
-          <article className="fixed inset-4">
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 0.9,
+            }}
+            exit={{
+              opacity: 0,
+            }}
+          />
+          <motion.article className="fixed inset-4">
             <SVGBox />
 
-            <div className="absolute inset-5">{children}</div>
+            <motion.div
+              className="absolute inset-5"
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              exit={{
+                opacity: 0,
+              }}
+            >
+              {children}
+            </motion.div>
 
             <IconButton
               name="close"
@@ -34,7 +56,7 @@ export const Dialog: React.FC<Props> = ({
               className="absolute right-2 top-2"
               onClick={onClose}
             />
-          </article>
+          </motion.article>
         </>
       )}
     </AnimatePresence>

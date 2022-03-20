@@ -38,9 +38,11 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+
+  @apply text-fuchsia-600 hover:text-fuchsia-500;
 }
 
-* {
+a * {
   box-sizing: border-box;
 }
 

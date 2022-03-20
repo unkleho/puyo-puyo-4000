@@ -56,18 +56,22 @@ export const SVGBox: React.FC<Props> = ({
         ></motion.path>
 
         {[
-          `M 0 ${
-            height / 2 - cornerSize / 2
-          } L 0 ${cornerStartHeight} L ${cornerStartWidth} 0`,
-          `M 0 ${
-            height / 2 + cornerSize / 2
-          } L 0 ${cornerEndHeight} L ${cornerStartWidth} ${height}`,
-          `M ${width} ${
-            height / 2 - cornerSize / 2
-          } L ${width} ${cornerStartHeight} L ${cornerEndWidth} 0`,
-          `M ${width} ${
-            height / 2 + cornerSize / 2
-          } L ${width} ${cornerEndHeight} L ${cornerEndWidth} ${height}`,
+          `M 0 ${height / 2 - cornerSize / 2}
+          L 0 ${cornerStartHeight} 
+          L ${cornerStartWidth} 0
+          L ${width / 2 - cornerSize / 2} 0`,
+          `M 0 ${height / 2 + cornerSize / 2} 
+          L 0 ${cornerEndHeight} 
+          L ${cornerStartWidth} ${height}
+          L ${width / 2 - cornerSize / 2} ${height}`,
+          `M ${width} ${height / 2 - cornerSize / 2} 
+          L ${width} ${cornerStartHeight} 
+          L ${cornerEndWidth} 0
+          L ${width / 2 + cornerSize / 2} 0`,
+          `M ${width} ${height / 2 + cornerSize / 2}
+          L ${width} ${cornerEndHeight} 
+          L ${cornerEndWidth} ${height}
+          L ${width / 2 + cornerSize / 2} ${height}`,
         ].map((d, i) => {
           return (
             <motion.path
