@@ -160,7 +160,7 @@ const Home: NextPage = () => {
 
             <IconButton
               name="menu"
-              className="mt-4"
+              className="mt-1"
               onClick={() => setDialogOpen(true)}
             />
 
