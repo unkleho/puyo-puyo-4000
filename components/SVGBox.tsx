@@ -5,11 +5,13 @@ import useMeasure from 'react-use-measure';
 type Props = {
   cornerSize?: number;
   boxFill?: 'stone' | 'black';
+  className?: string;
 };
 
 export const SVGBox: React.FC<Props> = ({
   cornerSize = 16,
   boxFill = 'stone',
+  className,
 }) => {
   // Use use container to set width and height of SVG
   const [containerRef, { width, height }] = useMeasure();
@@ -20,12 +22,18 @@ export const SVGBox: React.FC<Props> = ({
   const cornerEndHeight = height - cornerSize;
 
   return (
-    <motion.span ref={containerRef} className="relative block h-full w-full">
+    <motion.span
+      ref={containerRef}
+      className={['relative block h-full w-full', className || ''].join(' ')}
+    >
       <motion.svg
         className="absolute inset-0 h-full w-full"
         viewBox="0 0"
         width={'100%'}
         height={'100%'}
+        style={{
+          filter: 'drop-shadow(1px 1px 16px rgb(0 0 0 / 0.5))',
+        }}
       >
         <motion.path
           d={`
