@@ -32,11 +32,11 @@ export const Dialog: React.FC<Props> = ({
               opacity: 0,
             }}
           />
-          <motion.article className="fixed inset-4 m-auto max-h-96 max-w-sm">
+          <motion.article className="fixed inset-4 m-auto max-w-sm">
             <SVGBox boxFill="black" />
 
             <motion.div
-              className="absolute inset-5"
+              className="absolute inset-5 overflow-auto "
               initial={{
                 opacity: 0,
               }}

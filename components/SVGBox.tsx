@@ -13,7 +13,7 @@ export const SVGBox: React.FC<Props> = ({
   boxFill = 'stone',
   className,
 }) => {
-  // Use use container to set width and height of SVG
+  // Use container to set width and height of SVG
   const [containerRef, { width, height }] = useMeasure();
 
   const cornerStartWidth = cornerSize;
@@ -47,7 +47,6 @@ export const SVGBox: React.FC<Props> = ({
               H ${cornerStartWidth} 
               L 0 ${cornerEndHeight}
               `}
-          // fill="rgb(18 15 13)"
           className={[
             boxFill === 'stone' ? 'fill-stone-900' : '',
             boxFill === 'black' ? 'fill-black' : '',
@@ -84,9 +83,6 @@ export const SVGBox: React.FC<Props> = ({
           return (
             <motion.path
               d={d}
-              // stone-700
-              // stroke="rgb(65 64 60)"
-              // stroke="rgb(95 94 90)"
               className="stroke-stone-700"
               strokeWidth={1}
               fill="none"
