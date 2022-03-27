@@ -8,6 +8,7 @@ type Props = {
 };
 
 type ControlButtonProps = {
+  title: string;
   className?: string;
   onClick?: Function;
 };
@@ -20,6 +21,7 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
   return (
     <div className={['control-buttons gap-2', className || ''].join(' ')}>
       <ControlButton
+        title="Rotate (Up)"
         className="col-span-1 col-start-2"
         onClick={() => rotatePuyos()}
       >
@@ -27,17 +29,23 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
       </ControlButton>
 
       <ControlButton
+        title="Left"
         className="row-span-2 row-start-1 border-b"
         onClick={() => movePuyos('left')}
       >
         <Icon name="left" />
       </ControlButton>
 
-      <ControlButton className="row-start-2" onClick={() => movePuyos('down')}>
+      <ControlButton
+        title="Down"
+        className="row-start-2"
+        onClick={() => movePuyos('down')}
+      >
         <Icon name="down" />
       </ControlButton>
 
       <ControlButton
+        title="Right"
         className="row-span-2 row-start-1 border-b"
         onClick={() => movePuyos('right')}
       >
@@ -60,6 +68,7 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
 };
 
 const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
+  title,
   className,
   children,
   onClick,
@@ -72,6 +81,7 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
         'flex touch-manipulation select-none items-center justify-center border-t  border-stone-700 bg-stone-900 p-4 text-center active:bg-stone-700',
         className || '',
       ].join(' ')}
+      title={title}
       onClick={() => {
         if (!isMobile) {
           onClick?.();

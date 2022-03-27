@@ -1,12 +1,16 @@
-# Puyo Puyo
+# Puyo Puyo 4000
+
+Experimental open source Puyo Puyo clone by [Unkle Ho](https://twitter.com/unkleho).
+
+Connect four Puyos (balls) of the same colour to make them pop (disappear). Deceptively simple, difficult to master.
+
+## Built with
 
 - Next JS
 - Zustand
 - React Three Fiber
 - Framer Motion
 - Tailwind CSS
-
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
 
