@@ -16,7 +16,6 @@ type ControlButtonProps = {
 export const ControlButtons: React.FC<Props> = ({ className }) => {
   const movePuyos = useStore((store) => store.movePuyos);
   const rotatePuyos = useStore((store) => store.rotatePuyos);
-  const tickSpeed = useStore((store) => store.tickSpeed);
 
   return (
     <div className={['control-buttons gap-2', className || ''].join(' ')}>
@@ -51,10 +50,6 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
       >
         <Icon name="right" />
       </ControlButton>
-
-      {/* <p className="absolute bottom-0 mb-3 text-xs uppercase tracking-widest text-stone-700">
-        {tickSpeed}
-      </p> */}
 
       <style jsx>{`
         .control-buttons {

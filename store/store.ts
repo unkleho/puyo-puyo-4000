@@ -92,8 +92,9 @@ export type Store = {
   };
   /** Padding referenced from a DOM element with Tailwind responsive width. Use this to responsively work out board dimensions. */
   padding: number;
-  // Testing this out
+  /** Testing this out */
   puyoMoveType: PuyoMoveType | null;
+  isDialogOpen: boolean;
   setScreen: (width: number, height: number) => void;
   setPadding: (padding: number) => void;
   startGame: () => void;
@@ -108,6 +109,7 @@ export type Store = {
   landedPuyos: () => void;
   collapsePuyos: () => void;
   clearPuyos: () => void;
+  setDialogOpen: (isDialogOpen: boolean) => void;
 };
 
 export const useStore = create<Store>((set) => ({
@@ -139,6 +141,7 @@ export const useStore = create<Store>((set) => ({
   },
   padding: 16,
   puyoMoveType: null,
+  isDialogOpen: false,
   setScreen: (width, height) =>
     set(() => {
       // console.log(width, height);
@@ -553,6 +556,7 @@ export const useStore = create<Store>((set) => ({
         tickSpeed: getTickSpeed(state.totalChainCount),
       };
     }),
+  setDialogOpen: (isDialogOpen) => set(() => ({ isDialogOpen })),
 }));
 
 function getTickSpeed(totalChainCount: number): number {
