@@ -2,6 +2,7 @@ import React from 'react';
 import useDeviceDetect from '../hooks/use-device-detect';
 import { useStore } from '../store/store';
 import { Icon } from './Icon';
+import { Borders, SciFiBox } from './SciFiBox';
 
 type Props = {
   className?: string;
@@ -9,6 +10,7 @@ type Props = {
 
 type ControlButtonProps = {
   title: string;
+  borders?: Borders;
   className?: string;
   onClick?: Function;
 };
@@ -21,6 +23,15 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
     <div className={['control-buttons gap-2', className || ''].join(' ')}>
       <ControlButton
         title="Rotate (Up)"
+        borders={{
+          topLeft: 'top',
+          topRight: 'top',
+          bottom: 'hide',
+          left: 'hide',
+          bottomLeft: 'hide',
+          right: 'hide',
+          bottomRight: 'hide',
+        }}
         className="col-span-1 col-start-2"
         onClick={() => rotatePuyos()}
       >
@@ -29,7 +40,13 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
 
       <ControlButton
         title="Left"
-        className="row-span-2 row-start-1 border-b"
+        borders={{
+          topRight: 'top',
+          right: 'hide',
+          bottomRight: 'bottom',
+          left: 'hide',
+        }}
+        className="row-span-2 row-start-1 border-b-0"
         onClick={() => movePuyos('left')}
       >
         <Icon name="left" />
@@ -37,6 +54,15 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
 
       <ControlButton
         title="Down"
+        borders={{
+          topRight: 'top',
+          topLeft: 'top',
+          // bottom: 'hide',
+          left: 'hide',
+          // bottomLeft: 'hide',
+          right: 'hide',
+          // bottomRight: 'hide',
+        }}
         className="row-start-2"
         onClick={() => movePuyos('down')}
       >
@@ -45,7 +71,13 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
 
       <ControlButton
         title="Right"
-        className="row-span-2 row-start-1 border-b"
+        borders={{
+          topLeft: 'top',
+          left: 'hide',
+          right: 'hide',
+          bottomLeft: 'bottom',
+        }}
+        className="row-span-2 row-start-1 border-b-0"
         onClick={() => movePuyos('right')}
       >
         <Icon name="right" />
@@ -65,6 +97,7 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
 const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   title,
   className,
+  borders,
   children,
   onClick,
 }) => {
@@ -73,7 +106,7 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   return (
     <button
       className={[
-        'flex touch-manipulation select-none items-center justify-center border-t  border-stone-700 bg-stone-900 p-4 text-center active:bg-stone-700',
+        'relative flex touch-manipulation select-none items-center justify-center border-0  border-stone-700 bg-stone-900 p-4 text-center active:bg-stone-700',
         className || '',
       ].join(' ')}
       title={title}
@@ -86,6 +119,7 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
         onClick?.();
       }}
     >
+      <SciFiBox className="absolute inset-0" borders={borders} />
       {children}
     </button>
   );
