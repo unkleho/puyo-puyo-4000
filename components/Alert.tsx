@@ -15,18 +15,9 @@ export const Alert: React.FC<Props> = ({
   isActive,
   width = 150,
   height = 100,
-  cornerRatio = 0.1,
   children,
   onClick,
 }) => {
-  // Ensure 45 angle
-  const cornerHeightRatio = (width / height) * cornerRatio;
-
-  const cornerStartWidth = width * cornerRatio;
-  const cornerStartHeight = height * cornerHeightRatio;
-  const cornerEndWidth = width * (1 - cornerRatio);
-  const cornerEndHeight = height * (1 - cornerHeightRatio);
-
   return (
     <AnimatePresence>
       {isActive && (

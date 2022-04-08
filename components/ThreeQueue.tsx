@@ -4,6 +4,7 @@ import { usePrevious } from '../hooks/use-previous';
 import { PuyoColour, useStore } from '../store/store';
 import { Puyo } from './Puyo';
 import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
+import { SciFiBox } from './SciFiBox';
 
 type Props = {
   className?: string;
@@ -37,6 +38,18 @@ export const ThreeQueue: React.FC<Props> = ({ className }) => {
         height: cellSize * 4 + 5,
       }}
     >
+      <SciFiBox
+        className="absolute w-full"
+        borders={{
+          left: 'hide',
+          topRight: 'top',
+          topLeft: 'top',
+          bottomLeft: 'bottom',
+          right: 'hide',
+          // bottomRight: 'bottom',
+        }}
+      />
+
       <Canvas
         orthographic={true}
         camera={{

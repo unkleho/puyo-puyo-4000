@@ -161,7 +161,7 @@ export const Game = () => {
       </div>
 
       <div className="flex w-12 flex-col justify-between">
-        <ThreeQueue className="mr-4 border-t border-b border-stone-700" />
+        <ThreeQueue className="mr-4" />
         {/* <Queue /> */}
 
         <div className="mb-auto mt-2 text-left">

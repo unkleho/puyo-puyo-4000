@@ -83,7 +83,7 @@ export const SciFiBox: React.FC<Props> = ({
     {
       position: 'topLeft',
       borderClassName:
-        '-ml-[0.4rem] mb-[0.4rem] w-[1.41rem] -rotate-45 border-b',
+        '-mt-[0.5rem] -ml-[0.2rem] w-[1.41rem] rotate-[135deg] border-b origin-bottom h-4',
       cornerClassName: 'border-t border-l',
       topCornerClassName: 'border-t',
     },
@@ -120,35 +120,6 @@ export const SciFiBox: React.FC<Props> = ({
         },
       )}
 
-      {/* <span className={['box-top border-t', borderColour].join(' ')}></span> */}
-      {/* <span
-        className={[
-          'box-top-right -ml-[0.4rem] mt-[0.4rem] w-[1.41rem] rotate-45 border-t',
-          borderColour,
-        ].join(' ')}
-      ></span>
-      <span className={['box-right border-r', borderColour].join(' ')}></span>
-      <span
-        className={[
-          'box-bottom-right -ml-[0.4rem] mb-[0.4rem] w-[1.41rem] -rotate-45 border-b',
-          borderColour,
-        ].join(' ')}
-      ></span>
-      <span className={['box-bottom border-b', borderColour].join(' ')}></span>
-      <span
-        className={[
-          'box-bottom-left -mr-[0.4rem] mb-[0.4rem] w-[1.41rem] rotate-45 border-b',
-          borderColour,
-        ].join(' ')}
-      ></span>
-      <span className={['box-left border-l', borderColour].join(' ')}></span>
-      <span
-        className={[
-          'box-top-left -ml-[0.4rem] mb-[0.4rem] w-[1.41rem] -rotate-45 border-b',
-          borderColour,
-        ].join(' ')}
-      ></span> */}
-
       <style jsx>{`
         .box {
           display: grid;
@@ -166,18 +137,21 @@ export const SciFiBox: React.FC<Props> = ({
 
         .box-top {
           grid-area: top;
+          // background: red;
         }
 
         .box-topRight {
           grid-area: top-right;
+          // background: red;
         }
 
         .box-right {
-          grid-area: right;
+          grid-area: right;p
         }
 
         .box-bottomRight {
           grid-area: bottom-right;
+          // background: red;
         }
 
         .box-bottom {
@@ -186,6 +160,7 @@ export const SciFiBox: React.FC<Props> = ({
 
         .box-bottomLeft {
           grid-area: bottom-left;
+          // background: red;
         }
 
         .box-left {
@@ -194,6 +169,7 @@ export const SciFiBox: React.FC<Props> = ({
 
         .box-topLeft {
           grid-area: top-left;
+          // background: red;
         }
       `}</style>
     </span>
