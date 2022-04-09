@@ -14,7 +14,7 @@ const Home: NextPage = () => {
   const setPadding = useStore((store) => store.setPadding);
   const setDialogOpen = useStore((store) => store.setDialogOpen);
 
-  // Measure padding on <main> to use set ThreeBoard canvas width/height
+  // Measure padding on <main> to htlp set ThreeBoard canvas width/height
   const mainRef = useRef<HTMLDivElement>(null);
   const mainComputedStyle = mainRef.current
     ? localWindow?.getComputedStyle(mainRef.current as Element)

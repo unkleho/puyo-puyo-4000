@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useKeyPress } from '../hooks/use-key-press';
 import { useStore } from '../store/store';
 import { Alert } from './Alert';
+import { Audio } from './Audio';
 import { ControlButtons } from './ControlButtons';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
@@ -26,6 +27,7 @@ export const Game = () => {
   const setDialogOpen = useStore((store) => store.setDialogOpen);
 
   const startGame = useStore((store) => store.startGame);
+  const dropPuyos = useStore((store) => store.dropPuyos);
   const togglePauseGame = useStore((store) => store.togglePauseGame);
   const loseGame = useStore((store) => store.loseGame);
   const idleGame = useStore((store) => store.idleGame);
@@ -74,7 +76,7 @@ export const Game = () => {
     let interval: number = 0;
 
     if (gameState === 'start') {
-      addPuyos();
+      dropPuyos();
     } else if (gameState === 'drop-puyos') {
       interval = window.setInterval(() => {
         movePuyos('down', 'board');
@@ -115,6 +117,7 @@ export const Game = () => {
     clearPuyos,
     collapsePuyos,
     loseGame,
+    dropPuyos,
   ]);
 
   return (
@@ -217,6 +220,8 @@ export const Game = () => {
       </div>
 
       <ControlButtons className="col-span-3" />
+
+      <Audio />
 
       <style jsx>{`
         .game {

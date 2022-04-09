@@ -98,6 +98,7 @@ export type Store = {
   setScreen: (width: number, height: number) => void;
   setPadding: (padding: number) => void;
   startGame: () => void;
+  dropPuyos: () => void;
   togglePauseGame: () => void;
   loseGame: () => void;
   idleGame: () => void;
@@ -165,7 +166,7 @@ export const useStore = create<Store>((set) => ({
 
       return {
         grid,
-        gameState: 'drop-puyos',
+        gameState: 'start',
         puyos: {
           '0': createRandomPuyo(),
           '1': createRandomPuyo(),
@@ -181,6 +182,12 @@ export const useStore = create<Store>((set) => ({
         chainCount: 0,
         totalChainCount: 0,
         tickSpeed: INITIAL_TICK_SPEED,
+      };
+    }),
+  dropPuyos: () =>
+    set(() => {
+      return {
+        gameState: 'drop-puyos',
       };
     }),
   togglePauseGame: () =>
