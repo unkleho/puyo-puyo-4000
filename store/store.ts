@@ -64,6 +64,8 @@ const clearGrid = [
   [null, null, null, null, null, null],
 ];
 
+type Volume = 'high' | 'off';
+
 const INITIAL_TICK_SPEED = 600;
 
 export type Store = {
@@ -93,11 +95,11 @@ export type Store = {
   };
   /** Padding referenced from a DOM element with Tailwind responsive width. Use this to responsively work out board dimensions. */
   padding: number;
-  /** Testing this out */
   puyoMoveType: PuyoMoveType | null;
   puyoMoveDirection: PuyoMoveDirection | null;
   puyoRotation: PuyoRotation;
   isDialogOpen: boolean;
+  volume: Volume;
   setScreen: (width: number, height: number) => void;
   setPadding: (padding: number) => void;
   startGame: () => void;
@@ -114,6 +116,7 @@ export type Store = {
   collapsePuyos: () => void;
   clearPuyos: () => void;
   setDialogOpen: (isDialogOpen: boolean) => void;
+  setVolume: (currentVolume: Volume) => void;
 };
 
 export const useStore = create<Store>((set) => ({
@@ -148,6 +151,7 @@ export const useStore = create<Store>((set) => ({
   puyoMoveDirection: null,
   puyoRotation: 'down',
   isDialogOpen: false,
+  volume: 'high',
   setScreen: (width, height) =>
     set(() => {
       // console.log(width, height);
@@ -573,6 +577,8 @@ export const useStore = create<Store>((set) => ({
       };
     }),
   setDialogOpen: (isDialogOpen) => set(() => ({ isDialogOpen })),
+  setVolume: (currentVolume) =>
+    set(() => ({ volume: currentVolume === 'high' ? 'off' : 'high' })),
 }));
 
 function getTickSpeed(totalChainCount: number): number {

@@ -21,6 +21,8 @@ export const Audio = () => {
 
   const puyoMoveDirection = useStore((store) => store.puyoMoveDirection);
 
+  const volume = useStore((store) => store.volume);
+
   const [notes, setNotes] = useState<
     { name: string; key?: string; velocity?: number }[]
   >([]);
@@ -75,7 +77,7 @@ export const Audio = () => {
   }, [gameState, score, prevScore, puyoRotation, prevPuyoRotation]);
 
   return (
-    <Song>
+    <Song isMuted={volume === 'off'}>
       <Track>
         <Instrument
           type="sampler"

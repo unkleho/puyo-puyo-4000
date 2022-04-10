@@ -78,6 +78,7 @@ export const ThreeQueue: React.FC<Props> = ({ className }) => {
                 y={y - gap}
                 initialX={0}
                 initialY={cellSize * -3}
+                type="board"
                 key={id}
               />
             );

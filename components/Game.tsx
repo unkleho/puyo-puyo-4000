@@ -23,8 +23,10 @@ export const Game = () => {
   const totalChainCount = useStore((store) => store.totalChainCount);
   const level = useStore((store) => store.level);
   const isDialogOpen = useStore((store) => store.isDialogOpen);
+  const volume = useStore((store) => store.volume);
 
   const setDialogOpen = useStore((store) => store.setDialogOpen);
+  const setVolume = useStore((store) => store.setVolume);
 
   const startGame = useStore((store) => store.startGame);
   const dropPuyos = useStore((store) => store.dropPuyos);
@@ -131,6 +133,13 @@ export const Game = () => {
           onClick={() => setDialogOpen(true)}
         />
 
+        <IconButton
+          name={`volume-${volume}`}
+          onClick={() => {
+            setVolume(volume);
+          }}
+        ></IconButton>
+
         <p
           className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"
           style={{
@@ -212,9 +221,7 @@ export const Game = () => {
               name="pause"
               onClick={() => togglePauseGame()}
               className="uppercase"
-            >
-              <Icon name="pause" />
-            </IconButton>
+            ></IconButton>
           )}
         </div>
       </div>

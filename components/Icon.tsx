@@ -7,7 +7,9 @@ export type IconName =
   | 'pause'
   | 'return-up-back'
   | 'right'
-  | 'rotate';
+  | 'rotate'
+  | 'volume-high'
+  | 'volume-off';
 
 type Props = {
   name: IconName;
