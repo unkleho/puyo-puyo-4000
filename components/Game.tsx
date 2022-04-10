@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useKeyPress } from '../hooks/use-key-press';
+import { useAudioStore } from '../store/audioStore';
 import { useStore } from '../store/store';
 import { Alert } from './Alert';
 import { Audio } from './Audio';
@@ -23,10 +24,10 @@ export const Game = () => {
   const totalChainCount = useStore((store) => store.totalChainCount);
   const level = useStore((store) => store.level);
   const isDialogOpen = useStore((store) => store.isDialogOpen);
-  const volume = useStore((store) => store.volume);
+  const volume = useAudioStore((store) => store.volume);
 
   const setDialogOpen = useStore((store) => store.setDialogOpen);
-  const setVolume = useStore((store) => store.setVolume);
+  const setVolume = useAudioStore((store) => store.setVolume);
 
   const startGame = useStore((store) => store.startGame);
   const dropPuyos = useStore((store) => store.dropPuyos);
@@ -73,6 +74,12 @@ export const Game = () => {
       movePuyos('down');
     }
   });
+
+  const [isSSR, setIsSSR] = useState(true);
+
+  useEffect(() => {
+    setIsSSR(false);
+  }, []);
 
   useEffect(() => {
     let interval: number = 0;
@@ -133,12 +140,14 @@ export const Game = () => {
           onClick={() => setDialogOpen(true)}
         />
 
-        <IconButton
-          name={`volume-${volume}`}
-          onClick={() => {
-            setVolume(volume);
-          }}
-        ></IconButton>
+        {!isSSR && (
+          <IconButton
+            name={`volume-${volume}`}
+            onClick={() => {
+              setVolume(volume);
+            }}
+          ></IconButton>
+        )}
 
         <p
           className="mt-auto flex text-right font-normal uppercase leading-none tracking-widest"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Instrument, Song, Track } from 'reactronica';
 import { usePrevious } from '../hooks/use-previous';
+import { useAudioStore } from '../store/audioStore';
 import { useStore } from '../store/store';
 import { collapsePuyosTimeout } from './Game';
 
@@ -21,7 +22,7 @@ export const Audio = () => {
 
   const puyoMoveDirection = useStore((store) => store.puyoMoveDirection);
 
-  const volume = useStore((store) => store.volume);
+  const volume = useAudioStore((store) => store.volume);
 
   const [notes, setNotes] = useState<
     { name: string; key?: string; velocity?: number }[]
@@ -82,6 +83,9 @@ export const Audio = () => {
         <Instrument
           type="sampler"
           notes={notes}
+          onLoad={(buffers) => {
+            console.log(buffers);
+          }}
           samples={{
             // C3: './audio/bling5.mp3', // Start
             C3: './audio/error3.mp3', // Start
