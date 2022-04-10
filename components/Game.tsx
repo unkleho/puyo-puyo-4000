@@ -11,7 +11,7 @@ import { Score } from './Score';
 import { ThreeBoard } from './ThreeBoard';
 import { ThreeQueue } from './ThreeQueue';
 
-const collapsePuyosTimeout = 400;
+export const collapsePuyosTimeout = 400;
 const clearPuyosTimeout = 400;
 const landingPuyosTimeout = 300;
 

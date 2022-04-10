@@ -41,8 +41,9 @@ export const puyoColours = [
   PuyoColour.YELLOW,
   PuyoColour.PURPLE,
 ];
-export type MovePuyoDirection = 'left' | 'right' | 'down';
+export type PuyoMoveDirection = 'left' | 'right' | 'down';
 export type PuyoMoveType = 'left' | 'right' | 'down' | 'rotate';
+export type PuyoRotation = 'up' | 'right' | 'down' | 'left';
 
 export type Grid = (string | null)[][];
 const clearGrid = [
@@ -94,6 +95,7 @@ export type Store = {
   padding: number;
   /** Testing this out */
   puyoMoveType: PuyoMoveType | null;
+  puyoRotation: PuyoRotation;
   isDialogOpen: boolean;
   setScreen: (width: number, height: number) => void;
   setPadding: (padding: number) => void;
@@ -103,7 +105,7 @@ export type Store = {
   loseGame: () => void;
   idleGame: () => void;
   setCellSize: (cellSize: number) => void;
-  movePuyos: (direction: MovePuyoDirection, type?: 'user' | 'board') => void;
+  movePuyos: (direction: PuyoMoveDirection, type?: 'user' | 'board') => void;
   rotatePuyos: () => void;
   addPuyos: () => void;
   landingPuyos: () => void;
@@ -142,6 +144,7 @@ export const useStore = create<Store>((set) => ({
   },
   padding: 16,
   puyoMoveType: null,
+  puyoRotation: 'down',
   isDialogOpen: false,
   setScreen: (width, height) =>
     set(() => {
@@ -378,6 +381,7 @@ export const useStore = create<Store>((set) => ({
       return {
         grid,
         gameState,
+        puyoMoveType: direction,
         // puyoMoveType: type === 'user' ? 'down' : null,
       };
     });
@@ -390,7 +394,7 @@ export const useStore = create<Store>((set) => ({
       const [puyo2Column, puyo2Row] = getPuyoPosition(state.grid, puyo2Id);
 
       // Work out relative position of puyo2
-      let puyo2Position: 'up' | 'right' | 'down' | 'left' = 'down';
+      let puyoRotation: 'up' | 'right' | 'down' | 'left' = 'down';
 
       if (
         typeof puyo1Column === 'number' &&
@@ -400,19 +404,19 @@ export const useStore = create<Store>((set) => ({
       ) {
         if (puyo1Column === puyo2Column) {
           if (puyo1Row > puyo2Row) {
-            puyo2Position = 'up';
+            puyoRotation = 'up';
           } else {
-            puyo2Position = 'down';
+            puyoRotation = 'down';
           }
         } else if (puyo1Row === puyo2Row) {
           if (puyo1Column > puyo2Column) {
-            puyo2Position = 'left';
+            puyoRotation = 'left';
           } else {
-            puyo2Position = 'right';
+            puyoRotation = 'right';
           }
         }
 
-        if (puyo2Position === 'up') {
+        if (puyoRotation === 'up') {
           if (grid[puyo1Row][puyo2Column + 1] === null) {
             // Move puyo2 to the right of puyo1
             grid[puyo2Row][puyo2Column] = null;
@@ -430,7 +434,7 @@ export const useStore = create<Store>((set) => ({
             grid[puyo2Row][puyo2Column] = puyo1Id;
             grid[puyo1Row][puyo1Column] = puyo2Id;
           }
-        } else if (puyo2Position === 'right') {
+        } else if (puyoRotation === 'right') {
           if (grid[puyo1Row + 1] && grid[puyo1Row + 1][puyo1Column] === null) {
             // Move puyo2 below puyo1
             grid[puyo2Row][puyo2Column] = null;
@@ -441,7 +445,7 @@ export const useStore = create<Store>((set) => ({
             grid[puyo1Row - 1][puyo1Column] = puyo1Id;
             grid[puyo2Row][puyo2Column - 1] = puyo2Id;
           }
-        } else if (puyo2Position === 'down') {
+        } else if (puyoRotation === 'down') {
           if (grid[puyo1Row][puyo2Column - 1] === null) {
             // Move puyo2 to the left of puyo1
             grid[puyo2Row][puyo2Column] = null;
@@ -459,7 +463,7 @@ export const useStore = create<Store>((set) => ({
             grid[puyo2Row][puyo2Column] = puyo1Id;
             grid[puyo1Row][puyo1Column] = puyo2Id;
           }
-        } else if (puyo2Position === 'left') {
+        } else if (puyoRotation === 'left') {
           if (grid[puyo2Row - 1] && grid[puyo2Row - 1][puyo1Column] === null) {
             // Move puyo2 above of puyo1
             grid[puyo2Row][puyo2Column] = null;
@@ -471,6 +475,7 @@ export const useStore = create<Store>((set) => ({
       return {
         grid,
         puyoMoveType: 'rotate',
+        puyoRotation,
       };
     });
   },
