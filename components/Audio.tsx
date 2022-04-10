@@ -28,16 +28,18 @@ export const Audio = () => {
     { name: string; key?: string; velocity?: number }[]
   >([]);
 
-  console.log(gameState, puyoMoveType, puyoMoveDirection, puyoRotation);
+  // console.log(gameState, puyoMoveType, puyoMoveDirection, puyoRotation);
 
   useEffect(() => {
     if (
-      gameState !== 'idle' &&
+      gameState == 'drop-puyos' &&
       puyoMoveType === 'user' &&
       puyoMoveDirection == 'down'
     ) {
       // Down sound
-      setNotes([{ name: 'C4', key: Math.random().toString(), velocity: 0.3 }]);
+      // console.log('---- Down sound!');
+
+      setNotes([{ name: 'C4', key: Math.random().toString(), velocity: 0.2 }]);
     }
   }, [gameState, puyoMoveType, puyoMoveDirection]);
 
@@ -54,7 +56,7 @@ export const Audio = () => {
 
   useEffect(() => {
     if (gameState !== 'idle' && prevPuyoRotation !== puyoRotation) {
-      setNotes([{ name: 'B4', key: Math.random().toString(), velocity: 0.3 }]);
+      setNotes([{ name: 'B4', key: Math.random().toString(), velocity: 0.2 }]);
     }
 
     if (gameState === 'start') {
@@ -66,7 +68,9 @@ export const Audio = () => {
         setNotes([{ name: 'E3', key: Math.random().toString() }]);
       } else {
         window.setTimeout(() => {
-          setNotes([{ name: 'A4', key: Math.random().toString() }]);
+          setNotes([
+            { name: 'A3', key: Math.random().toString(), velocity: 0.5 },
+          ]);
         }, collapsePuyosTimeout);
       }
     } else if (gameState === 'lose') {
@@ -88,15 +92,15 @@ export const Audio = () => {
           }}
           samples={{
             // C3: './audio/bling5.mp3', // Start
-            C3: './audio/error3.mp3', // Start
-            D3: './audio/beep6.mp3', // Landed
-            E3: './audio/bling1.mp3', // Collapsed (chain)
-            F3: './audio/error2.mp3', // Lose
-            G3: './audio/beep2.mp3', // Landing
-            A4: './audio/beep4.mp3', // Collapse (no chain)
-            B4: './audio/slide3.mp3', // Collapse (no chain)
-            C4: './audio/slide2.mp3', // Rotate
-            D4: './audio/click4.mp3', // Move puyo
+            C3: '/audio/error3.mp3', // Start
+            D3: '/audio/beep6.mp3', // Landed
+            E3: '/audio/bling1.mp3', // Collapsed (chain)
+            F3: '/audio/error2.mp3', // Lose
+            G3: '/audio/beep2.mp3', // Landing
+            A3: '/audio/beep4.mp3', // Collapse (no chain)
+            B4: '/audio/slide3.mp3', // Move down
+            C4: '/audio/slide2.mp3', // Rotate
+            // D4: '/audio/click4.mp3', // Move puyo
           }}
         ></Instrument>
       </Track>

@@ -261,6 +261,7 @@ export const useStore = create<Store>((set) => ({
         grid,
         // Drop dem new puyos down
         gameState: 'drop-puyos',
+        puyoMoveType: 'board',
       };
     }),
   movePuyos: (direction, type = 'user') => {
