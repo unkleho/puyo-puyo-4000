@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion-3d';
 import React from 'react';
 import { usePrevious } from '../hooks/use-previous';
-import { PuyoColour, PuyoMoveType } from '../store/store';
+import { PuyoColour } from '../store/store';
 import { PuyoType } from './Puyo';
 
 type PuyoSphereProps = {
@@ -13,7 +13,6 @@ type PuyoSphereProps = {
   initialX?: number;
   initialY?: number;
   type?: PuyoType;
-  moveType?: PuyoMoveType;
 };
 
 const colours = {
@@ -33,7 +32,6 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
   initialX,
   initialY,
   type,
-  moveType,
 }) => {
   if (x == null || y == null) {
     return null;

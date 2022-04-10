@@ -19,21 +19,39 @@ export const Audio = () => {
   const puyoMoveType = useStore((store) => store.puyoMoveType);
   const prevPuyoMoveType = usePrevious(puyoMoveType);
 
+  const puyoMoveDirection = useStore((store) => store.puyoMoveDirection);
+
   const [notes, setNotes] = useState<
     { name: string; key?: string; velocity?: number }[]
   >([]);
 
-  console.log(gameState, score, prevScore, puyoMoveType);
+  console.log(gameState, puyoMoveType, puyoMoveDirection, puyoRotation);
+
+  useEffect(() => {
+    if (
+      gameState !== 'idle' &&
+      puyoMoveType === 'user' &&
+      puyoMoveDirection == 'down'
+    ) {
+      // Down sound
+      setNotes([{ name: 'C4', key: Math.random().toString(), velocity: 0.3 }]);
+    }
+  }, [gameState, puyoMoveType, puyoMoveDirection]);
 
   // useEffect(() => {
-  //   if (gameState !== 'idle' && prevPuyoMoveType !== puyoMoveType) {
-  //     setNotes([{ name: 'B4', key: Math.random().toString(), velocity: 0.5 }]);
+  //   if (
+  //     gameState !== 'idle' &&
+  //     puyoMoveType === 'user' &&
+  //     (puyoMoveDirection == 'left' || puyoMoveDirection == 'right')
+  //   ) {
+  //     // Left / Right sound
+  //     setNotes([{ name: 'D4', key: Math.random().toString(), velocity: 0.5 }]);
   //   }
-  // }, [gameState, puyoMoveType, prevPuyoMoveType]);
+  // }, [gameState, puyoMoveType, puyoMoveDirection]);
 
   useEffect(() => {
     if (gameState !== 'idle' && prevPuyoRotation !== puyoRotation) {
-      setNotes([{ name: 'B4', key: Math.random().toString(), velocity: 0.5 }]);
+      setNotes([{ name: 'B4', key: Math.random().toString(), velocity: 0.3 }]);
     }
 
     if (gameState === 'start') {
@@ -71,7 +89,8 @@ export const Audio = () => {
             G3: './audio/beep2.mp3', // Landing
             A4: './audio/beep4.mp3', // Collapse (no chain)
             B4: './audio/slide3.mp3', // Collapse (no chain)
-            C4: './audio/slide2.mp3', // Move puyo down
+            C4: './audio/slide2.mp3', // Rotate
+            D4: './audio/click4.mp3', // Move puyo
           }}
         ></Instrument>
       </Track>

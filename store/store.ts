@@ -41,8 +41,8 @@ export const puyoColours = [
   PuyoColour.YELLOW,
   PuyoColour.PURPLE,
 ];
-export type PuyoMoveDirection = 'left' | 'right' | 'down';
-export type PuyoMoveType = 'left' | 'right' | 'down' | 'rotate';
+export type PuyoMoveDirection = 'left' | 'right' | 'down' | 'rotate';
+export type PuyoMoveType = 'user' | 'board';
 export type PuyoRotation = 'up' | 'right' | 'down' | 'left';
 
 export type Grid = (string | null)[][];
@@ -95,6 +95,7 @@ export type Store = {
   padding: number;
   /** Testing this out */
   puyoMoveType: PuyoMoveType | null;
+  puyoMoveDirection: PuyoMoveDirection | null;
   puyoRotation: PuyoRotation;
   isDialogOpen: boolean;
   setScreen: (width: number, height: number) => void;
@@ -144,6 +145,7 @@ export const useStore = create<Store>((set) => ({
   },
   padding: 16,
   puyoMoveType: null,
+  puyoMoveDirection: null,
   puyoRotation: 'down',
   isDialogOpen: false,
   setScreen: (width, height) =>
@@ -381,7 +383,8 @@ export const useStore = create<Store>((set) => ({
       return {
         grid,
         gameState,
-        puyoMoveType: direction,
+        puyoMoveDirection: direction,
+        puyoMoveType: type,
         // puyoMoveType: type === 'user' ? 'down' : null,
       };
     });
@@ -474,7 +477,8 @@ export const useStore = create<Store>((set) => ({
 
       return {
         grid,
-        puyoMoveType: 'rotate',
+        puyoMoveType: 'user',
+        puyoMoveDirection: 'rotate',
         puyoRotation,
       };
     });
