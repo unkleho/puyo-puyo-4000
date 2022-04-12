@@ -146,7 +146,7 @@ export const useStore = create<Store>((set) => ({
   padding: 16,
   puyoMoveType: null,
   puyoMoveDirection: null,
-  puyoRotation: 'down',
+  puyoRotation: 'up',
   isDialogOpen: false,
   setScreen: (width, height) =>
     set(() => {
