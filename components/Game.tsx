@@ -45,6 +45,13 @@ export const Game = () => {
 
   const gameState = isDialogOpen ? localGameState === 'paused' : localGameState;
 
+  useEffect(() => {
+    setIsSSR(false);
+  }, []);
+
+  // --------------------------------------------------------------------------
+  // Keyboard controls
+  // --------------------------------------------------------------------------
   useKeyPress(' ', [gameState], () => {
     if (gameState === 'idle') {
       startGame();
@@ -52,35 +59,34 @@ export const Game = () => {
   });
 
   useKeyPress('ArrowLeft', [gameState], () => {
-    if (gameState !== 'paused') {
+    if (gameState !== 'paused' && gameState !== 'lose') {
       movePuyos('left');
     }
   });
 
   useKeyPress('ArrowRight', [gameState], () => {
-    if (gameState !== 'paused') {
+    if (gameState !== 'paused' && gameState !== 'lose') {
       movePuyos('right');
     }
   });
 
   useKeyPress('ArrowUp', [gameState], () => {
-    if (gameState !== 'paused') {
+    if (gameState !== 'paused' && gameState !== 'lose') {
       rotatePuyos();
     }
   });
 
   useKeyPress('ArrowDown', [gameState], () => {
-    if (gameState !== 'paused') {
+    if (gameState !== 'paused' && gameState !== 'lose') {
       movePuyos('down');
     }
   });
 
   const [isSSR, setIsSSR] = useState(true);
 
-  useEffect(() => {
-    setIsSSR(false);
-  }, []);
-
+  // --------------------------------------------------------------------------
+  // Game state effects
+  // --------------------------------------------------------------------------
   useEffect(() => {
     let interval: number = 0;
 
