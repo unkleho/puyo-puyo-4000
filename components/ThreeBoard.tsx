@@ -12,10 +12,11 @@ import { PuyoColour } from '../store/store';
 import { PuyoType } from './Puyo';
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { getPuyoPosition, Grid, useStore } from '../store/store';
+import { Grid, useStore } from '../store/store';
 // import useDimensions from 'react-use-dimensions';
 import useMeasure from 'react-use-measure';
 import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
+import { getPuyoPosition } from '../shared/grid';
 
 // https://codesandbox.io/s/el11e?file=/src/App.js:2033-2275
 

@@ -5,6 +5,7 @@ import {
   collapsePuyos,
   isGridEqual,
   cloneGrid,
+  getPuyoPosition,
 } from '../shared/grid';
 import { clearPuyos } from '../shared/clear-puyos';
 import { getScore } from '../shared/score';
@@ -86,6 +87,7 @@ export type Store = {
   score: number;
   /** Temporary chain count between clear and collapse states, used to work out chain power & scoring */
   chainCount: number;
+  /** Running total of chains during game */
   totalChainCount: number;
   level: number;
   screen: {
@@ -558,8 +560,11 @@ export const useStore = create<Store>((set) => ({
           chainCount: state.chainCount + 1,
           totalChainCount: state.totalChainCount + 1,
           tickSpeed: state.tickSpeed,
+          level: state.level,
         };
       }
+
+      const [level, tickSpeed] = getLevelAndTickSpeed(state.totalChainCount);
 
       // If there are no more puyos cleared, add up total score and continue
       // game and add puyos
@@ -570,56 +575,36 @@ export const useStore = create<Store>((set) => ({
         score: state.score,
         chainCount: 0,
         totalChainCount: state.totalChainCount,
-        tickSpeed: getTickSpeed(state.totalChainCount),
+        tickSpeed,
+        level,
       };
     }),
   setDialogOpen: (isDialogOpen) => set(() => ({ isDialogOpen })),
 }));
 
-function getTickSpeed(totalChainCount: number): number {
+/**
+ * Get level and tick speed (ms) based on totalChainCount
+ */
+function getLevelAndTickSpeed(totalChainCount: number): [number, number] {
   if (totalChainCount >= 30) {
-    return 100;
+    return [7, 100];
   } else if (totalChainCount >= 25) {
-    return 150;
+    return [6, 150];
   } else if (totalChainCount >= 20) {
-    return 200;
+    return [5, 200];
   } else if (totalChainCount >= 15) {
-    return 300;
+    return [4, 300];
   } else if (totalChainCount >= 10) {
-    return 400;
+    return [3, 400];
   } else if (totalChainCount >= 5) {
-    return 500;
+    return [2, 500];
   }
 
-  return INITIAL_TICK_SPEED;
+  return [1, INITIAL_TICK_SPEED];
 }
 
 function createRandomPuyo(): Puyo {
   return {
     colour: puyoColours[Math.floor(Math.random() * puyoColours.length)],
-    // colour: puyoColours[0],
   };
-}
-
-/**
- * Get column and row values of puyo in grid
- * @returns [column, row]
- */
-export function getPuyoPosition(
-  grid: Grid,
-  id: string,
-): [number | null, number | null] {
-  let puyoColumn = null;
-  let puyoRow = null;
-
-  grid.forEach((columns, row) =>
-    columns.find((cellId, column) => {
-      if (cellId && cellId === id) {
-        puyoColumn = column;
-        puyoRow = row;
-      }
-    }),
-  );
-
-  return [puyoColumn, puyoRow];
 }

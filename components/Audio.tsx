@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Instrument, Song, Track } from 'reactronica';
 import { usePrevious } from '../hooks/use-previous';
+import { getPuyoPosition } from '../shared/grid';
 import { useAudioStore } from '../store/audioStore';
-import { getPuyoPosition, useStore } from '../store/store';
+import { useStore } from '../store/store';
 import { collapsePuyosTimeout } from './Game';
 
 // TODO: Export NoteType from Reactronica
@@ -12,7 +13,10 @@ export const Audio = () => {
   const gameState = useStore((store) => store.gameState);
 
   const grid = useStore((store) => store.grid);
+  const prevGrid = usePrevious(grid);
   const userPuyoIds = useStore((store) => store.userPuyoIds);
+
+  // console.log('grid === prevGrid', grid, prevGrid);
 
   const [puyo1Id] = userPuyoIds;
   const [puyo1Column] = getPuyoPosition(grid, puyo1Id);
@@ -34,7 +38,7 @@ export const Audio = () => {
   >([]);
 
   // console.log(gameState, puyoMoveType, puyoMoveDirection, puyoRotation);
-  console.log(gameState, prevPuyoRotation, puyoRotation);
+  // console.log(gameState, prevPuyoRotation, puyoRotation);
 
   useEffect(() => {
     if (
@@ -74,11 +78,13 @@ export const Audio = () => {
 
   useEffect(() => {
     if (gameState === 'start') {
+      // Start sound
       setNotes([{ name: 'C3' }]);
     } else if (gameState === 'landed-puyos') {
       // setNotes([{ name: 'D3', key: Math.random().toString() }]);
     } else if (gameState === 'collapse-puyos') {
       if (score !== prevScore) {
+        // Pop puyo sound
         setNotes([{ name: 'E3', key: Math.random().toString() }]);
       } else {
         window.setTimeout(() => {
@@ -93,7 +99,7 @@ export const Audio = () => {
       // Or G3?
       setNotes([{ name: 'D3', key: Math.random().toString() }]);
     }
-  }, [gameState, score, prevScore]);
+  }, [gameState, score, prevScore, grid, prevGrid]);
 
   return (
     <Song isMuted={volume === 'off'}>

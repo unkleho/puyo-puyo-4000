@@ -1,4 +1,4 @@
-import { getPuyoPosition, Grid } from '../store/store';
+import { Grid } from '../store/store';
 
 /**
  * Make clone of grid
@@ -102,4 +102,27 @@ export function rotateGrid(grid: Grid): Grid {
 
 export function padEnd(array: any[], minLength: number, fillValue: any) {
   return Object.assign(new Array(minLength).fill(fillValue), array);
+}
+
+/**
+ * Get column and row values of puyo in grid
+ * @returns [column, row]
+ */
+export function getPuyoPosition(
+  grid: Grid,
+  id: string,
+): [number | null, number | null] {
+  let puyoColumn = null;
+  let puyoRow = null;
+
+  grid.forEach((columns, row) =>
+    columns.find((cellId, column) => {
+      if (cellId && cellId === id) {
+        puyoColumn = column;
+        puyoRow = row;
+      }
+    }),
+  );
+
+  return [puyoColumn, puyoRow];
 }
