@@ -98,6 +98,8 @@ export const Audio = () => {
     } else if (gameState === 'landing-puyos') {
       // Or G3?
       setNotes([{ name: 'D3', key: Math.random().toString() }]);
+    } else if (gameState === 'paused') {
+      setNotes([{ name: 'E4', key: Math.random().toString() }]);
     }
   }, [gameState, score, prevScore, grid, prevGrid]);
 
@@ -121,6 +123,7 @@ export const Audio = () => {
             B4: '/audio/slide3.mp3', // Move down
             C4: '/audio/slide2.mp3', // Rotate
             D4: '/audio/click4.mp3', // Move puyo left/right
+            E4: '/audio/beep1.mp3', // Pause/resume
           }}
         ></Instrument>
       </Track>
