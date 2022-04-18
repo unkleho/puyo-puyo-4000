@@ -8,13 +8,9 @@ import {
   QuadraticBezierLine,
   Sphere,
 } from '@react-three/drei';
-import { PuyoColour } from '../store/store';
 import { PuyoType } from './Puyo';
 import React from 'react';
-import { AnimatePresence } from 'framer-motion';
 import { Grid, useStore } from '../store/store';
-// import useDimensions from 'react-use-dimensions';
-import useMeasure from 'react-use-measure';
 import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
 import { getPuyoPosition } from '../shared/grid';
 
@@ -84,9 +80,6 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
       <Canvas
         orthographic={true}
         camera={{
-          // near: 50,
-          // far: 10000,
-          // fov: 100,
           zoom: 1,
           position: [0, 0, 100],
         }}
@@ -175,11 +168,11 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
   );
 };
 
-export function Material() {
+function Material() {
   return <meshPhongMaterial color="#fff" specular="#61dafb" shininess={10} />;
 }
 
-export function Lights() {
+function Lights() {
   return (
     <>
       <spotLight color="#61dafb" position={[-10, -10, -10]} intensity={0.2} />

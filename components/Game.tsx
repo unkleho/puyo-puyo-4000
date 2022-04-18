@@ -45,6 +45,9 @@ export const Game = () => {
 
   const gameState = isDialogOpen ? localGameState === 'paused' : localGameState;
 
+  // --------------------------------------------------------------------------
+  // SSR check
+  // --------------------------------------------------------------------------
   useEffect(() => {
     setIsSSR(false);
   }, []);
