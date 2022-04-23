@@ -1,7 +1,9 @@
 import { AnimatePresence } from 'framer-motion';
 import React from 'react';
 import useMeasure from 'react-use-measure';
-import { getPuyoPosition, Grid, useStore } from '../store/store';
+import { getPuyoPosition } from '../shared/grid';
+import { Grid, useStore } from '../store/store';
+
 import { Puyo, PuyoType } from './Puyo';
 
 type Props = {
