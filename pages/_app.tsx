@@ -9,12 +9,13 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Head>
         <title>Puyo Puyo 4000 - Open Source Clone</title>
         <link rel="icon" href="/favicon.ico" />
-        <SocialMetaHead
-          title="Puyo Puyo 4000 - Open Source Clone"
-          description="Clone of popular Tetris-like game Puyo Puyo."
-          imageUrl="/social/social-card.png"
-        />
       </Head>
+      <SocialMetaHead
+        title="Puyo Puyo 4000 - Open Source Clone"
+        description="Clone of popular Tetris-like game Puyo Puyo."
+        imageUrl="/social/social-card.jpg"
+        twitterUsername="unkleho"
+      />
 
       <Component {...pageProps} />
     </>
