@@ -12,8 +12,10 @@ function MyApp({ Component, pageProps }: AppProps) {
       </Head>
       <SocialMetaHead
         title="Puyo Puyo 4000 - Open Source Clone"
-        description="Clone of popular Tetris-like game Puyo Puyo."
+        description="Open source clone of popular Tetris-like game Puyo Puyo. Written in React, Next JS, Zustand and React Three Fiber."
         imageUrl="/social/social-card.jpg"
+        imageWidth={800}
+        imageHeight={800}
         twitterUsername="unkleho"
       />
 
