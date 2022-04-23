@@ -13,7 +13,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       <SocialMetaHead
         title="Puyo Puyo 4000 - Open Source Clone"
         description="Open source clone of popular Tetris-like game Puyo Puyo. Written in React, Next JS, Zustand and React Three Fiber."
-        imageUrl="/social/social-card.jpg"
+        imageUrl={
+          process.env.NEXT_PUBLIC_VERCEL_URL + '/social/social-card.jpg'
+        }
         imageWidth={800}
         imageHeight={800}
         twitterUsername="unkleho"
