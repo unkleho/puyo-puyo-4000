@@ -7,7 +7,6 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>Puyo Puyo 4000 - Open Source Clone</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <SocialMetaHead

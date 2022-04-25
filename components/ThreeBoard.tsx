@@ -1,13 +1,5 @@
-import { Canvas, Dpr, useThree } from '@react-three/fiber';
-import { motion } from 'framer-motion-3d';
-import {
-  Line,
-  MeshDistortMaterial,
-  MeshWobbleMaterial,
-  OrthographicCamera,
-  QuadraticBezierLine,
-  Sphere,
-} from '@react-three/drei';
+import { Canvas, Dpr } from '@react-three/fiber';
+import { Line } from '@react-three/drei';
 import { PuyoType } from './Puyo';
 import React from 'react';
 import { Grid, useStore } from '../store/store';
@@ -19,7 +11,6 @@ import { getPuyoPosition } from '../shared/grid';
 type Props = {
   grid: Grid;
   className?: string;
-  // children: React.ReactNode;
 };
 
 const devicePixelRatio =
@@ -43,8 +34,6 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 
   const boardPadding = 10;
 
-  // console.log('padding', padding);
-
   // Calculate width/height of board based on screen size, surrounding ui and global padding
   const widthAdjust = padding + 48 + 16 + 16 + 48 + padding;
   const heightAdjust = padding + 128 + 16 + padding;
@@ -59,8 +48,6 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
 
   // Work out cellSize based on width of board
   const cellSize = (width - boardPadding) / 6;
-
-  // console.log('Board', width, height);
 
   React.useEffect(() => {
     setCellSize(cellSize);
@@ -162,25 +149,6 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         {/*An point light, basically the same as directional. This one points from under */}
         <pointLight position={[0, -10, 5]} intensity={1} />
       </Canvas>
-
-      {/* <div className="absolute inset-0 opacity-50 backdrop-blur-3xl"></div> */}
     </div>
   );
 };
-
-function Material() {
-  return <meshPhongMaterial color="#fff" specular="#61dafb" shininess={10} />;
-}
-
-function Lights() {
-  return (
-    <>
-      <spotLight color="#61dafb" position={[-10, -10, -10]} intensity={0.2} />
-      <spotLight color="#61dafb" position={[-10, 0, 15]} intensity={0.8} />
-      <spotLight color="#61dafb" position={[-5, 20, 2]} intensity={0.5} />
-      <spotLight color="#f2056f" position={[15, 10, -2]} intensity={2} />
-      <spotLight color="#f2056f" position={[15, 10, 5]} intensity={1} />
-      <spotLight color="#b107db" position={[5, -10, 5]} intensity={0.8} />
-    </>
-  );
-}

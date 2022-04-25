@@ -8,13 +8,8 @@ type Props = {
 export const Queue: React.FC<Props> = ({ className }) => {
   const puyoIds = useStore((state) => state.nextPuyoIds);
   const puyos = useStore((state) => state.puyos);
-  // const cellSize = useStore((state) => state.cellSize);
 
   const cellSize = 40;
-
-  // if (isNaN(cellSize)) {
-  //   return null;
-  // }
 
   return (
     <div

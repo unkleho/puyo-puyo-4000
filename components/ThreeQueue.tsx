@@ -1,8 +1,6 @@
 import { Canvas, Dpr } from '@react-three/fiber';
 import React from 'react';
-import { usePrevious } from '../hooks/use-previous';
-import { PuyoColour, useStore } from '../store/store';
-import { Puyo } from './Puyo';
+import { useStore } from '../store/store';
 import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
 import { SciFiBox } from './SciFiBox';
 
@@ -17,18 +15,6 @@ export const ThreeQueue: React.FC<Props> = ({ className }) => {
   const puyoIds = useStore((state) => state.nextPuyoIds);
   const puyos = useStore((state) => state.puyos);
   const cellSize = useStore((state) => state.cellSize);
-
-  // Work out puyos that were removed from queue and put into board
-  const prevPuyoIds: string[] = usePrevious(puyoIds);
-  const prevPuyoIdsToRemove = prevPuyoIds?.filter(
-    (id) => !puyoIds.includes(id),
-  );
-  const puyosToRemove = prevPuyoIdsToRemove?.map((id) => puyos[id]);
-  // console.log(puyosToRemove);
-
-  // if (isNaN(cellSize)) {
-  //   return null;
-  // }
 
   return (
     <div
@@ -46,7 +32,6 @@ export const ThreeQueue: React.FC<Props> = ({ className }) => {
           topLeft: 'top',
           bottomLeft: 'bottom',
           right: 'hide',
-          // bottomRight: 'bottom',
         }}
       />
 

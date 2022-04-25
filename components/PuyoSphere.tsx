@@ -55,32 +55,8 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
       transition={{
         delay: type === 'to-clear' ? Math.random() * 0.1 : 0,
       }}
-      // TODO: Experiment with smooth drop
-      // transition={
-      //   !moveType
-      //     ? {
-      //         type: 'tween',
-      //         duration: 0.6,
-      //         ease: 'linear',
-      //       }
-      //     : null
-      // }
-      // Exit not working with framer-motion-3d
-      // exit={{
-      //   scale: 0.1,
-      // }}
     >
-      {/* A spherical shape*/}
       <sphereGeometry attach="geometry" args={[(cellSize / 2) * 0.9, 16, 16]} />
-      {/* <Sphere visible args={[cellSize / 2, 16, 16]}>
-        <MeshWobbleMaterial
-          attach="material"
-          color={colours[colour]}
-          // factor={30} // Strength, 0 disables the effect (default=1)
-          // speed={2} // Speed (default=1)
-          roughness={0}
-        />
-      </Sphere> */}
 
       {/* A standard mesh material*/}
       <meshStandardMaterial
@@ -94,8 +70,10 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
   );
 };
 
-// Cut price version of framer-motion's AnimatePresence for PuyoSphere
-// This is an abstraction for animating out cleared PuyoSpheres
+/**
+ * Cut price version of framer-motion's AnimatePresence for PuyoSphere
+ * This is an abstraction for animating out cleared PuyoSpheres
+ */
 export const PuyoSphereAnimatePresence: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
@@ -128,8 +106,6 @@ export const PuyoSphereAnimatePresence: React.FC<{
         })}
 
       {currentChildren?.map((child: any) => {
-        // console.log(child);
-
         if (typeof child === 'object') {
           return child.type(child.props);
         }

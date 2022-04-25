@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Icon, IconName } from './Icon';
-import { SVGBox } from './SVGBox';
 
 type Props = {
   name: IconName;
@@ -34,14 +33,11 @@ export const IconButton: React.FC<Props> = ({
         opacity: 0,
       }}
     >
-      {/* <SVGBox cornerSize={8} /> */}
-      {/* <span className="absolute"> */}
       <Icon
         name={name}
         size="sm"
         className="transition-colors hover:text-fuchsia-600"
       />
-      {/* </span> */}
     </motion.button>
   );
 };

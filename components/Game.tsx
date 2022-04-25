@@ -5,16 +5,15 @@ import { useStore } from '../store/store';
 import { Alert } from './Alert';
 import { Audio } from './Audio';
 import { ControlButtons } from './ControlButtons';
-import { Icon } from './Icon';
 import { IconButton } from './IconButton';
 import { PuyoPuyoLogo } from './PuyoPuyoLogo';
 import { Score } from './Score';
 import { ThreeBoard } from './ThreeBoard';
 import { ThreeQueue } from './ThreeQueue';
 
-export const collapsePuyosTimeout = 400;
-const clearPuyosTimeout = 400;
-const landingPuyosTimeout = 300;
+export const COLLAPSE_PUYOS_TIMEOUT = 400;
+const CLEAR_PUYOS_TIMEOUT = 400;
+const LANDING_PUYOS_TIMEOUT = 300;
 
 export const Game = () => {
   const grid = useStore((store) => store.grid);
@@ -104,18 +103,18 @@ export const Game = () => {
     } else if (gameState === 'landing-puyos') {
       window.setTimeout(() => {
         landingPuyos();
-      }, landingPuyosTimeout);
+      }, LANDING_PUYOS_TIMEOUT);
     } else if (gameState === 'landed-puyos') {
       window.clearInterval(interval);
       landedPuyos();
     } else if (gameState === 'collapse-puyos') {
       window.setTimeout(() => {
         collapsePuyos();
-      }, collapsePuyosTimeout);
+      }, COLLAPSE_PUYOS_TIMEOUT);
     } else if (gameState === 'clear-puyos') {
       window.setTimeout(() => {
         clearPuyos();
-      }, clearPuyosTimeout);
+      }, CLEAR_PUYOS_TIMEOUT);
     } else if (gameState === 'add-puyos') {
       addPuyos();
     } else if (gameState === 'lose') {

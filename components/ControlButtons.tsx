@@ -57,11 +57,10 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
         borders={{
           topRight: 'top',
           topLeft: 'top',
-          // bottom: 'hide',
           left: 'hide',
-          // bottomLeft: 'hide',
+          bottomLeft: 'bottom',
           right: 'hide',
-          // bottomRight: 'hide',
+          bottomRight: 'bottom',
         }}
         className="row-start-2"
         onClick={() => movePuyos('down')}

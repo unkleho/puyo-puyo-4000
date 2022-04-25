@@ -131,18 +131,12 @@ export const SciFiBox: React.FC<Props> = ({
           grid-template-rows: 1rem 1fr 1rem;
         }
 
-        // .box span {
-        //   border-colour: var(--color-stone-700);
-        // }
-
         .box-top {
           grid-area: top;
-          // background: red;
         }
 
         .box-topRight {
           grid-area: top-right;
-          // background: red;
         }
 
         .box-right {
@@ -151,7 +145,6 @@ export const SciFiBox: React.FC<Props> = ({
 
         .box-bottomRight {
           grid-area: bottom-right;
-          // background: red;
         }
 
         .box-bottom {
@@ -160,7 +153,6 @@ export const SciFiBox: React.FC<Props> = ({
 
         .box-bottomLeft {
           grid-area: bottom-left;
-          // background: red;
         }
 
         .box-left {
@@ -169,7 +161,6 @@ export const SciFiBox: React.FC<Props> = ({
 
         .box-topLeft {
           grid-area: top-left;
-          // background: red;
         }
       `}</style>
     </span>

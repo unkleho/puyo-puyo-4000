@@ -62,8 +62,6 @@ export const Puyo: React.FunctionComponent<Props> = ({
         scale: 0.01,
       }}
       transition={transition}
-    >
-      {/* {type} */}
-    </motion.div>
+    ></motion.div>
   );
 };
