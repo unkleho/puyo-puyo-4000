@@ -100,7 +100,7 @@ const ControlButton: React.FunctionComponent<ControlButtonProps> = ({
   children,
   onClick,
 }) => {
-  const isMobile = useDeviceDetect();
+  const { isMobile } = useDeviceDetect();
 
   return (
     <button
