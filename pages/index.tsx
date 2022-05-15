@@ -4,6 +4,7 @@ import { useWindowSize } from '../hooks/use-window-size';
 import { useStore } from '../store/store';
 import { InfoDialog } from '../components/InfoDialog';
 import { Game } from '../components/Game';
+import Blob from '../components/Blob/Blob';
 
 const localWindow = typeof window === 'undefined' ? null : window;
 

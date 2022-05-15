@@ -5,6 +5,7 @@ import React from 'react';
 import { Grid, useStore } from '../store/store';
 import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
 import { getPuyoPosition } from '../shared/grid';
+import Blob from './Blob/Blob';
 
 // https://codesandbox.io/s/el11e?file=/src/App.js:2033-2275
 
@@ -64,6 +65,9 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         backgroundColor: stone950,
       }}
     >
+      <Canvas>
+        <Blob />
+      </Canvas>
       <Canvas
         orthographic={true}
         camera={{
