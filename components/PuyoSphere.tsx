@@ -3,6 +3,7 @@ import React from 'react';
 import { usePrevious } from '../hooks/use-previous';
 import { PuyoColour } from '../store/store';
 import { PuyoType } from './Puyo';
+import Scene from './Wobbly/Wobby';
 
 type PuyoSphereProps = {
   id: string;
@@ -38,35 +39,42 @@ export const PuyoSphere: React.FC<PuyoSphereProps> = ({
   }
 
   return (
-    <motion.mesh
-      key={id}
-      position={[0, 0, 0]} // The position on the canvas of the object [x,y,x]
-      rotation={[0, 0, 0]} // The rotation of the object
-      castShadow // Sets whether or not the object cats a shadow
-      initial={{
-        x: initialX,
-        y: initialY,
-      }}
-      animate={{
-        x,
-        y,
-        scale: type === 'to-clear' ? 0.005 : 1,
-      }}
-      transition={{
-        delay: type === 'to-clear' ? Math.random() * 0.1 : 0,
-      }}
-    >
-      <sphereGeometry attach="geometry" args={[(cellSize / 2) * 0.9, 16, 16]} />
+    <>
+      <motion.mesh
+        key={id}
+        position={[0, 0, 0]} // The position on the canvas of the object [x,y,x]
+        rotation={[0, 0, 0]} // The rotation of the object
+        castShadow // Sets whether or not the object cats a shadow
+        initial={{
+          x: initialX,
+          y: initialY,
+        }}
+        animate={{
+          x,
+          y,
+          scale: type === 'to-clear' ? 0.005 : 1,
+        }}
+        transition={{
+          delay: type === 'to-clear' ? Math.random() * 0.1 : 0,
+        }}
+      >
+        <sphereGeometry
+          attach="geometry"
+          args={[(cellSize / 2) * 0.9, 16, 16]}
+        />
 
-      {/* A standard mesh material*/}
-      <meshStandardMaterial
-        attach="material" // How the element should attach itself to its parent
-        color={colours[colour]} // The color of the material
-        transparent // Defines whether this material is transparent. This has an effect on rendering as transparent objects need special treatment and are rendered after non-transparent objects. When set to true, the extent to which the material is transparent is controlled by setting it's .opacity property.
-        roughness={0.1} // The roughness of the material - Defaults to 1
-        metalness={0.1} // The metalness of the material - Defaults to 0
-      />
-    </motion.mesh>
+        {/* A standard mesh material*/}
+        <meshStandardMaterial
+          attach="material" // How the element should attach itself to its parent
+          color={colours[colour]} // The color of the material
+          transparent // Defines whether this material is transparent. This has an effect on rendering as transparent objects need special treatment and are rendered after non-transparent objects. When set to true, the extent to which the material is transparent is controlled by setting it's .opacity property.
+          roughness={0.1} // The roughness of the material - Defaults to 1
+          metalness={0.1} // The metalness of the material - Defaults to 0
+        />
+      </motion.mesh>
+
+      <Scene cellSize={cellSize} colour={PuyoColour.PURPLE} />
+    </>
   );
 };
 

@@ -1,11 +1,12 @@
 import { Canvas, Dpr } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
 import { PuyoType } from './Puyo';
-import React from 'react';
-import { Grid, useStore } from '../store/store';
+import React, { Suspense } from 'react';
+import { Grid, PuyoColour, useStore } from '../store/store';
 import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
 import { getPuyoPosition } from '../shared/grid';
 import Blob from './Blob/Blob';
+import Scene from './Wobbly/Wobby';
 
 // https://codesandbox.io/s/el11e?file=/src/App.js:2033-2275
 
@@ -65,9 +66,14 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         backgroundColor: stone950,
       }}
     >
-      <Canvas>
-        <Blob />
-      </Canvas>
+      {/* {typeof window !== 'undefined' && (
+        <Suspense fallback={null} r3f={true}>
+          <Canvas>
+          <Blob />
+          </Canvas>
+          </Suspense>
+        )} */}
+
       <Canvas
         orthographic={true}
         camera={{
@@ -76,6 +82,8 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         }}
         dpr={devicePixelRatio as Dpr}
       >
+        {/* <Scene colour={PuyoColour.PURPLE} /> */}
+
         <PuyoSphereAnimatePresence>
           {Object.entries(puyos).map(([id, puyo]) => {
             const [column, row] = getPuyoPosition(grid, id);
@@ -147,11 +155,11 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         })}
 
         {/*An ambient light that creates a soft light against the object */}
-        <ambientLight intensity={0.4} />
+        {/* <ambientLight intensity={0.4} /> */}
         {/*An directional light which aims form the given position */}
-        <directionalLight position={[10, 10, 5]} intensity={1} />
+        {/* <directionalLight position={[10, 10, 5]} intensity={1} /> */}
         {/*An point light, basically the same as directional. This one points from under */}
-        <pointLight position={[0, -10, 5]} intensity={1} />
+        {/* <pointLight position={[0, -10, 5]} intensity={1} /> */}
       </Canvas>
     </div>
   );
