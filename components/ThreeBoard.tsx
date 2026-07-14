@@ -1,10 +1,12 @@
 import { Canvas, Dpr } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
-import { PuyoType } from './Puyo';
 import React from 'react';
 import { Grid, useStore } from '../store/store';
-import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
+import { ENABLE_METABALL_PUYOS } from '../shared/config';
 import { getPuyoPosition } from '../shared/grid';
+import { PuyoMetaballs } from './PuyoMetaballs';
+import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
+import { PuyoType } from './Puyo';
 
 // https://codesandbox.io/s/el11e?file=/src/App.js:2033-2275
 
@@ -72,45 +74,54 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         }}
         dpr={devicePixelRatio as Dpr}
       >
-        <PuyoSphereAnimatePresence>
-          {Object.entries(puyos).map(([id, puyo]) => {
-            const [column, row] = getPuyoPosition(grid, id);
+        {ENABLE_METABALL_PUYOS ? (
+          <PuyoMetaballs
+            grid={grid}
+            puyos={puyos}
+            cellSize={cellSize}
+            userPuyoIds={userPuyoIds}
+          />
+        ) : (
+          <PuyoSphereAnimatePresence>
+            {Object.entries(puyos).map(([id, puyo]) => {
+              const [column, row] = getPuyoPosition(grid, id);
 
-            if (column !== null && row !== null) {
-              // Adjust rows
-              const newRow = row - 2;
+              if (column !== null && row !== null) {
+                // Adjust rows
+                const newRow = row - 2;
 
-              let type: PuyoType;
-              if (userPuyoIds.includes(id)) {
-                type = 'user';
-              } else {
-                type = 'board';
+                let type: PuyoType;
+                if (userPuyoIds.includes(id)) {
+                  type = 'user';
+                } else {
+                  type = 'board';
+                }
+
+                const x = column * cellSize - cellSize * 2.5;
+                const y = (newRow * cellSize - cellSize * 5.5) * -1;
+
+                // Hide top two rows for new puyos
+                if (row > 1) {
+                  return (
+                    <PuyoSphere
+                      id={id}
+                      key={id}
+                      colour={puyo.colour}
+                      cellSize={cellSize}
+                      x={x}
+                      y={y}
+                      initialX={cellSize * -0.5}
+                      initialY={cellSize * 6}
+                      type={type}
+                    />
+                  );
+                }
               }
 
-              const x = column * cellSize - cellSize * 2.5;
-              const y = (newRow * cellSize - cellSize * 5.5) * -1;
-
-              // Hide top two rows for new puyos
-              if (row > 1) {
-                return (
-                  <PuyoSphere
-                    id={id}
-                    key={id}
-                    colour={puyo.colour}
-                    cellSize={cellSize}
-                    x={x}
-                    y={y}
-                    initialX={cellSize * -0.5}
-                    initialY={cellSize * 6}
-                    type={type}
-                  />
-                );
-              }
-            }
-
-            return null;
-          })}
-        </PuyoSphereAnimatePresence>
+              return null;
+            })}
+          </PuyoSphereAnimatePresence>
+        )}
 
         {[...new Array(11)].map((_, i) => {
           const y = i * cellSize - cellSize * 5;
