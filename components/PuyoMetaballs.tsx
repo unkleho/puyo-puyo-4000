@@ -51,8 +51,24 @@ const ISOLATION = 70;
 // computeStrength) so the connection resolves more stably.
 const SUBTRACT = 8;
 // Steeper (higher) falloff used only for the sink-away (clear) animation —
-// see where it's used below for why.
-const SINK_SUBTRACT = 20;
+// see where it's used below for why. Higher than the live SUBTRACT (and
+// higher than the original pre-merge-fix value of 20): the disconnect
+// between two still-blended, differently-sized balls is an unavoidable
+// one-frame topology change, but its visual size depends on how thick the
+// connecting neck was a frame earlier. A steeper falloff keeps that neck
+// thinner throughout the blended phase, so the jump when it vanishes is
+// smaller, not just faster.
+const SINK_SUBTRACT = 40;
+// A group is fully grid-adjacent (hence connected) right up until it clears,
+// rendered live at SUBTRACT. Switching straight to SINK_SUBTRACT the instant
+// the sink animation mounts — before any ball has even started shrinking —
+// visibly snaps the neck from "eagerly merged" to "steep" in one frame. Ramp
+// between the two instead, over this short a window at the very start of the
+// sink lifetime (well before real shrinking kicks in — see easeInCubic).
+// Both endpoints keep the still-full-size group connected (just with a
+// different neck thickness), so this never crosses the connect/disconnect
+// threshold the way animating through a merge would.
+const SINK_SUBTRACT_RAMP_DURATION_SECONDS = 0.5;
 // Fraction of cellSize an isolated ball's radius should end up as, matching
 // PuyoSphere's old radius (cellSize / 2 * 0.9).
 const TARGET_RADIUS_RATIO = 0.43;
@@ -79,7 +95,7 @@ function getMaxPolyCount(size: number) {
 }
 
 // Sinking (clear) animation
-const SINK_DURATION_SECONDS = 0.6;
+const SINK_DURATION_SECONDS = 0.35;
 // How far the group drifts down as its balls shrink away.
 const SINK_DISTANCE_CELLS = 0;
 // Delay before each successive ball starts shrinking, so a multi-ball group
@@ -152,10 +168,16 @@ function smoothstep(t: number) {
 
 // Unlike smoothstep, this keeps accelerating right up to t=1 instead of
 // flattening out — used for the sink shrink below so a ball doesn't linger
-// at a nearly-constant, sub-voxel size for several frames before vanishing
-// (marching cubes can't resolve a feature that small without flickering).
-function easeInQuad(t: number) {
-  return t * t;
+// at any one intermediate size for many consecutive frames. Two different
+// sizes matter here: near the very end, a near-zero (sub-voxel) size that
+// marching cubes can't resolve cleanly; and, well before that, whatever size
+// a shrinking ball happens to be at when it disconnects from a still-larger
+// neighbour (a real, unavoidable one-frame topology change — see
+// SinkingMetaballBlob). Cubic (rather than quadratic) reaches any given
+// intermediate size with a steeper local slope, so both moments are crossed
+// in fewer frames — less linger, less visible either way.
+function easeInCubic(t: number) {
+  return t * t * t;
 }
 
 // strength ∝ radius², so scaling radiusRatio down shrinks each ball's own
@@ -599,6 +621,15 @@ const SinkingMetaballBlob: React.FC<SinkingBlobProps> = ({
     const overallProgress = Math.min(1, elapsedRef.current / totalDuration);
     const overallEased = smoothstep(overallProgress);
 
+    // Group-level (not per-ball/staggered) ramp from the live SUBTRACT up to
+    // SINK_SUBTRACT — see SINK_SUBTRACT_RAMP_DURATION_SECONDS above.
+    const subtractRampProgress = Math.min(
+      1,
+      elapsedRef.current / SINK_SUBTRACT_RAMP_DURATION_SECONDS,
+    );
+    const currentSubtract =
+      SUBTRACT + (SINK_SUBTRACT - SUBTRACT) * smoothstep(subtractRampProgress);
+
     const { centerX, centerY, fieldScale } = layout;
 
     effect.position.set(
@@ -616,26 +647,26 @@ const SinkingMetaballBlob: React.FC<SinkingBlobProps> = ({
         elapsedRef.current - index * STAGGER_SECONDS,
       );
       const ownProgress = Math.min(1, ownElapsed / SINK_DURATION_SECONDS);
-      const shrink = 1 - easeInQuad(ownProgress);
+      const shrink = 1 - easeInCubic(ownProgress);
 
-      // Uses SINK_SUBTRACT (steeper than the live SUBTRACT) — with several
-      // balls at very different sizes sharing one field during a staggered
-      // shrink, SUBTRACT's wider reach makes it easy for two balls' fields
-      // to constructively overlap somewhere that isn't near either ball's
-      // centre and cross ISOLATION there too, rendering as a stray fleck of
-      // extra geometry. A steeper falloff keeps each ball's influence more
-      // tightly local, so that overlap is far less likely.
+      // Uses currentSubtract (ramping up to the steeper SINK_SUBTRACT) — with
+      // several balls at very different sizes sharing one field during a
+      // staggered shrink, a low subtract's wider reach makes it easy for two
+      // balls' fields to constructively overlap somewhere that isn't near
+      // either ball's centre and cross ISOLATION there too, rendering as a
+      // stray fleck of extra geometry. A steeper falloff keeps each ball's
+      // influence more tightly local, so that overlap is far less likely.
       const strength = computeStrength(
         fieldScale,
         cellSize,
         TARGET_RADIUS_RATIO * shrink,
-        SINK_SUBTRACT,
+        currentSubtract,
       );
 
       const ballX = (x - centerX) / fieldScale / 2 + 0.5;
       const ballY = (y - centerY) / fieldScale / 2 + 0.5;
 
-      effect.addBall(ballX, ballY, 0.5, strength, SINK_SUBTRACT);
+      effect.addBall(ballX, ballY, 0.5, strength, currentSubtract);
     });
 
     if (overallProgress >= 1) {

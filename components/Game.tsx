@@ -11,7 +11,7 @@ import { Score } from './Score';
 import { ThreeBoard } from './ThreeBoard';
 import { ThreeQueue } from './ThreeQueue';
 
-export const COLLAPSE_PUYOS_TIMEOUT = 400;
+export const COLLAPSE_PUYOS_TIMEOUT = 150;
 const CLEAR_PUYOS_TIMEOUT = 400;
 const LANDING_PUYOS_TIMEOUT = 300;
 
