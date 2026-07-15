@@ -2,7 +2,13 @@ import { extend, useFrame } from '@react-three/fiber';
 import React from 'react';
 import { MarchingCubes as MarchingCubesImpl } from 'three/examples/jsm/objects/MarchingCubes';
 import { Grid, Puyos, PuyoColour } from '../store/store';
-import { getPuyoGroups, getPuyoPosition } from '../shared/grid';
+import {
+  cloneGrid,
+  countEmptyCellsBelow,
+  getPuyoGroups,
+  getPuyoPosition,
+  PuyoGroup,
+} from '../shared/grid';
 
 extend({ MarchingCubes: MarchingCubesImpl });
 
@@ -36,7 +42,17 @@ const MARGIN_CELLS = 1.2;
 // Isosurface threshold — the field value blobs are drawn at.
 const ISOLATION = 70;
 // Falloff steepness. Lower = balls merge more eagerly across gaps.
-const SUBTRACT = 20;
+// Grid-adjacent puyos' surfaces are only ~0.14 cells apart, so the "neck"
+// bridging them is thin relative to the voxel grid — a classic marching
+// cubes aliasing spot where a too-steep falloff makes that neck flicker in
+// and out as positions/resolution shift by even a fraction of a voxel.
+// Lowering this widens the blend zone (more voxels span the transition,
+// without changing any solo ball's own isosurface radius — see
+// computeStrength) so the connection resolves more stably.
+const SUBTRACT = 8;
+// Steeper (higher) falloff used only for the sink-away (clear) animation —
+// see where it's used below for why.
+const SINK_SUBTRACT = 20;
 // Fraction of cellSize an isolated ball's radius should end up as, matching
 // PuyoSphere's old radius (cellSize / 2 * 0.9).
 const TARGET_RADIUS_RATIO = 0.43;
@@ -134,6 +150,14 @@ function smoothstep(t: number) {
   return t * t * (3 - 2 * t);
 }
 
+// Unlike smoothstep, this keeps accelerating right up to t=1 instead of
+// flattening out — used for the sink shrink below so a ball doesn't linger
+// at a nearly-constant, sub-voxel size for several frames before vanishing
+// (marching cubes can't resolve a feature that small without flickering).
+function easeInQuad(t: number) {
+  return t * t;
+}
+
 // strength ∝ radius², so scaling radiusRatio down shrinks each ball's own
 // isosurface radius (used to shrink balls individually on clear, vs. scaling
 // the whole mesh).
@@ -141,10 +165,11 @@ function computeStrength(
   fieldScale: number,
   cellSize: number,
   radiusRatio: number = TARGET_RADIUS_RATIO,
+  subtract: number = SUBTRACT,
 ) {
   const targetRadius = radiusRatio * cellSize;
 
-  return Math.pow(targetRadius / (2 * fieldScale), 2) * (ISOLATION + SUBTRACT);
+  return Math.pow(targetRadius / (2 * fieldScale), 2) * (ISOLATION + subtract);
 }
 
 function computeFieldLayout(positions: [number, number][], cellSize: number) {
@@ -164,6 +189,38 @@ function computeFieldLayout(positions: [number, number][], cellSize: number) {
   const strength = computeStrength(fieldScale, cellSize);
 
   return { centerX, centerY, fieldScale, strength };
+}
+
+// While the user's piece can still fall further, its grid cell can
+// transiently line up beside an already-landed puyo of the same colour for
+// the single tick it happens to pass that row — merging and un-merging the
+// blob as it falls past, which reads as a flicker. Keep the falling piece in
+// its own island (still allowed to merge with itself) until it actually
+// comes to rest, at which point the caller stops calling this and falls back
+// to plain getPuyoGroups.
+function getGroupsExcludingFallingPiece(
+  grid: Grid,
+  puyos: Puyos,
+  userPuyoIds: [string, string],
+): PuyoGroup[] {
+  const settledGrid = cloneGrid(grid);
+  const fallingGrid: Grid = grid.map((columns) => columns.map(() => null));
+  const fallingPuyos: Puyos = {};
+
+  userPuyoIds.forEach((id) => {
+    const [column, row] = getPuyoPosition(grid, id);
+
+    if (column !== null && row !== null) {
+      settledGrid[row][column] = null;
+      fallingGrid[row][column] = id;
+      fallingPuyos[id] = puyos[id];
+    }
+  });
+
+  return [
+    ...getPuyoGroups(settledGrid, puyos),
+    ...getPuyoGroups(fallingGrid, fallingPuyos),
+  ];
 }
 
 /**
@@ -196,8 +253,18 @@ export const PuyoMetaballs: React.FC<Props> = ({
   const rotationArcRef = React.useRef<RotationArc | null>(null);
 
   const groups = React.useMemo(() => {
+    // Read directly off the live grid (rather than the store's gameState,
+    // which only flips to 'landing-puyos' a full tick after the piece is
+    // already resting) so merging can start the instant it truly can't fall
+    // any further — letting the existing position lerp (below) visibly close
+    // the last bit of distance instead of snapping in already-converged.
+    const canStillFall = countEmptyCellsBelow(grid, userPuyoIds) > 0;
+    const rawGroups = canStillFall
+      ? getGroupsExcludingFallingPiece(grid, puyos, userPuyoIds)
+      : getPuyoGroups(grid, puyos);
+
     // Hide top two rows for new puyos, same as the old ThreeBoard rendering.
-    return getPuyoGroups(grid, puyos)
+    return rawGroups
       .map((group) => ({
         ...group,
         ids: group.ids.filter((id) => {
@@ -206,9 +273,17 @@ export const PuyoMetaballs: React.FC<Props> = ({
         }),
       }))
       .filter((group) => group.ids.length > 0);
-  }, [grid, puyos]);
+  }, [grid, puyos, userPuyoIds]);
 
-  React.useEffect(() => {
+  // useLayoutEffect (not useEffect): this reacts to a group vanishing from
+  // `groups` by swapping in its sink-away replacement. useEffect fires after
+  // the browser has already painted the frame where the group's mesh was
+  // removed — with R3F's render loop repainting every animation frame
+  // regardless of React's own commit timing, that gap was enough for the
+  // group to visibly vanish for a frame (or more) before reappearing to sink
+  // away. useLayoutEffect's setState is flushed synchronously before paint,
+  // so the removal and its sink-away replacement land in the same frame.
+  React.useLayoutEffect(() => {
     // A group that just cleared disappears from the grid entirely, all at
     // once — spot that so it can sink away instead of popping out of
     // existence. (Can't key this off `puyos` — the store never deletes
@@ -541,18 +616,26 @@ const SinkingMetaballBlob: React.FC<SinkingBlobProps> = ({
         elapsedRef.current - index * STAGGER_SECONDS,
       );
       const ownProgress = Math.min(1, ownElapsed / SINK_DURATION_SECONDS);
-      const shrink = 1 - smoothstep(ownProgress);
+      const shrink = 1 - easeInQuad(ownProgress);
 
+      // Uses SINK_SUBTRACT (steeper than the live SUBTRACT) — with several
+      // balls at very different sizes sharing one field during a staggered
+      // shrink, SUBTRACT's wider reach makes it easy for two balls' fields
+      // to constructively overlap somewhere that isn't near either ball's
+      // centre and cross ISOLATION there too, rendering as a stray fleck of
+      // extra geometry. A steeper falloff keeps each ball's influence more
+      // tightly local, so that overlap is far less likely.
       const strength = computeStrength(
         fieldScale,
         cellSize,
         TARGET_RADIUS_RATIO * shrink,
+        SINK_SUBTRACT,
       );
 
       const ballX = (x - centerX) / fieldScale / 2 + 0.5;
       const ballY = (y - centerY) / fieldScale / 2 + 0.5;
 
-      effect.addBall(ballX, ballY, 0.5, strength, SUBTRACT);
+      effect.addBall(ballX, ballY, 0.5, strength, SINK_SUBTRACT);
     });
 
     if (overallProgress >= 1) {
