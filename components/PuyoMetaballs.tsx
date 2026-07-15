@@ -36,6 +36,16 @@ const colours = {
 // How long a user-piece rotation's 90° sweep around its pivot takes.
 const ROTATION_ARC_DURATION_SECONDS = 0.2;
 
+// Position smoothing: a damped spring rather than a plain ease-out lerp
+// Main speed dial for the spring
+const SPRING_ANGULAR_FREQUENCY = 15; // rad/s
+// Bounce control
+const SPRING_DAMPING_RATIO = 0.6;
+// Clamp the timestep fed to the spring integrator — an uncapped delta after
+// a frame hitch can make an explicit spring integration overshoot wildly
+// instead of just bouncing.
+const SPRING_MAX_DELTA_SECONDS = 1 / 30;
+
 // Margin (in cells) added around a group's bounding box so blobs have room
 // to bulge without hitting the field's edge.
 const MARGIN_CELLS = 1.2;
@@ -102,6 +112,17 @@ const SINK_DISTANCE_CELLS = 0;
 // pops away one after another instead of all at once.
 const STAGGER_SECONDS = 0.05;
 
+// How long a group of this size takes to finish sinking away — the last
+// ball's shrink starts (size - 1) * STAGGER_SECONDS in (see
+// SinkingMetaballBlob), so the group's total lifetime stretches by that much
+// past a single ball's own SINK_DURATION_SECONDS. Exported so the game state
+// machine (Game.tsx) can wait for this exact duration before dropping other
+// puyos into the gap, instead of a separately hand-tuned timeout that has to
+// be kept in sync by hand (which is exactly how this got out of sync before).
+export function getSinkAnimationDurationSeconds(groupSize: number) {
+  return SINK_DURATION_SECONDS + (groupSize - 1) * STAGGER_SECONDS;
+}
+
 // ---------------------------------------------------------------------------
 
 type Props = {
@@ -115,6 +136,10 @@ type Props = {
 // position stays continuous across a merge/split, instead of resetting
 // whenever it moves between an own-blob and a shared-cluster blob.
 type PositionMap = Map<string, [number, number]>;
+// Paired with PositionMap — a puyo's current world-space velocity, so its
+// spring toward the target (see SPRING_ANGULAR_FREQUENCY) can carry momentum
+// across a merge/split the same way its position already does.
+type VelocityMap = Map<string, [number, number]>;
 
 type Group = { colour: PuyoColour; ids: string[] };
 
@@ -145,6 +170,7 @@ type BlobProps = {
   grid: Grid;
   cellSize: number;
   positionsRef: React.MutableRefObject<PositionMap>;
+  velocitiesRef: React.MutableRefObject<VelocityMap>;
   rotationArcRef: React.MutableRefObject<RotationArc | null>;
 };
 
@@ -261,6 +287,7 @@ export const PuyoMetaballs: React.FC<Props> = ({
   userPuyoIds,
 }) => {
   const positionsRef = React.useRef<PositionMap>(new Map());
+  const velocitiesRef = React.useRef<VelocityMap>(new Map());
   const previousGroupsRef = React.useRef<Group[]>([]);
   const exitKeyRef = React.useRef(0);
   const [exitingGroups, setExitingGroups] = React.useState<ExitingGroup[]>([]);
@@ -339,6 +366,12 @@ export const PuyoMetaballs: React.FC<Props> = ({
     positionsRef.current.forEach((_, id) => {
       if (!liveIds.has(id)) {
         positionsRef.current.delete(id);
+      }
+    });
+
+    velocitiesRef.current.forEach((_, id) => {
+      if (!liveIds.has(id)) {
+        velocitiesRef.current.delete(id);
       }
     });
 
@@ -441,6 +474,7 @@ export const PuyoMetaballs: React.FC<Props> = ({
           grid={grid}
           cellSize={cellSize}
           positionsRef={positionsRef}
+          velocitiesRef={velocitiesRef}
           rotationArcRef={rotationArcRef}
         />
       ))}
@@ -468,6 +502,7 @@ const MetaballBlob: React.FC<BlobProps> = ({
   grid,
   cellSize,
   positionsRef,
+  velocitiesRef,
   rotationArcRef,
 }) => {
   const effectRef = React.useRef<any>(null);
@@ -479,8 +514,11 @@ const MetaballBlob: React.FC<BlobProps> = ({
       return;
     }
 
-    const lerpFactor = 1 - Math.pow(0.0001, delta);
+    const dt = Math.min(delta, SPRING_MAX_DELTA_SECONDS);
+    const springStiffness = SPRING_ANGULAR_FREQUENCY * SPRING_ANGULAR_FREQUENCY;
+    const springDamping = 2 * SPRING_DAMPING_RATIO * SPRING_ANGULAR_FREQUENCY;
     const positions = positionsRef.current;
+    const velocities = velocitiesRef.current;
 
     const worldPositions: [number, number][] = ids
       .map((id) => {
@@ -514,6 +552,11 @@ const MetaballBlob: React.FC<BlobProps> = ({
             const y = pivotPos[1] + Math.sin(angle) * cellSize;
 
             positions.set(id, [x, y]);
+            // Directly driven by the arc, not the spring — zero its velocity
+            // so that once the arc finishes, the spring resumes from rest
+            // instead of carrying over a stale velocity and flicking off in
+            // some unrelated direction.
+            velocities.set(id, [0, 0]);
 
             if (progress >= 1) {
               rotationArcRef.current = null;
@@ -523,15 +566,30 @@ const MetaballBlob: React.FC<BlobProps> = ({
           }
         }
 
-        const previous = positions.get(id);
-        const x = previous
-          ? previous[0] + (targetX - previous[0]) * lerpFactor
-          : targetX;
-        const y = previous
-          ? previous[1] + (targetY - previous[1]) * lerpFactor
-          : targetY;
+        const previous = positions.get(id) ?? [targetX, targetY];
+        const velocity = velocities.get(id) ?? [0, 0];
+
+        // Semi-implicit Euler integration of a damped spring: starts at rest
+        // and accelerates toward the target (unlike an ease-out lerp, which
+        // is fastest right when the target changes), then — being slightly
+        // underdamped — settles with a small overshoot rather than a dead
+        // stop. See SPRING_ANGULAR_FREQUENCY above.
+        const vx =
+          velocity[0] +
+          ((targetX - previous[0]) * springStiffness -
+            velocity[0] * springDamping) *
+            dt;
+        const vy =
+          velocity[1] +
+          ((targetY - previous[1]) * springStiffness -
+            velocity[1] * springDamping) *
+            dt;
+
+        const x = previous[0] + vx * dt;
+        const y = previous[1] + vy * dt;
 
         positions.set(id, [x, y]);
+        velocities.set(id, [vx, vy]);
 
         return [x, y] as [number, number];
       })
@@ -605,10 +663,7 @@ const SinkingMetaballBlob: React.FC<SinkingBlobProps> = ({
     () => computeFieldLayout(positions, cellSize),
     [positions, cellSize],
   );
-  // Last ball's shrink starts (positions.length - 1) * STAGGER_SECONDS in, so
-  // the group's total lifetime stretches by that amount.
-  const totalDuration =
-    SINK_DURATION_SECONDS + (positions.length - 1) * STAGGER_SECONDS;
+  const totalDuration = getSinkAnimationDurationSeconds(positions.length);
 
   useFrame((_, delta) => {
     const effect = effectRef.current;
