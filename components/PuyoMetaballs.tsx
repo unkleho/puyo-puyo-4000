@@ -2,13 +2,7 @@ import { extend, useFrame } from '@react-three/fiber';
 import React from 'react';
 import { MarchingCubes as MarchingCubesImpl } from 'three/examples/jsm/objects/MarchingCubes';
 import { Grid, Puyos, PuyoColour } from '../store/store';
-import {
-  cloneGrid,
-  countEmptyCellsBelow,
-  getPuyoGroups,
-  getPuyoPosition,
-  PuyoGroup,
-} from '../shared/grid';
+import { getPuyoGroups, getPuyoPosition, PuyoGroup } from '../shared/grid';
 
 extend({ MarchingCubes: MarchingCubesImpl });
 
@@ -39,8 +33,16 @@ const ROTATION_ARC_DURATION_SECONDS = 0.2;
 // Position smoothing: a damped spring rather than a plain ease-out lerp
 // Main speed dial for the spring
 const SPRING_ANGULAR_FREQUENCY = 15; // rad/s
-// Bounce control
-const SPRING_DAMPING_RATIO = 0.6;
+// Critically damped (no overshoot). A bouncy (underdamped) ratio was tried
+// for the falling piece to sell a "landing" feel, but any overshoot on a
+// ball's own rendered position directly threatens metaball connectivity: it
+// oscillates the exact distance that determines whether it visually merges
+// with a same-coloured neighbour, causing flicker whenever the falling piece
+// passes close to one. Removed rather than tuned further — there's no
+// oscillation left to cause that flicker. The "starts slow, speeds up like
+// gravity" feel still comes through since a puyo always starts this spring
+// from rest.
+const SPRING_DAMPING_RATIO = 1;
 // Clamp the timestep fed to the spring integrator — an uncapped delta after
 // a frame hitch can make an explicit spring integration overshoot wildly
 // instead of just bouncing.
@@ -83,24 +85,76 @@ const SINK_SUBTRACT_RAMP_DURATION_SECONDS = 0.5;
 // PuyoSphere's old radius (cellSize / 2 * 0.9).
 const TARGET_RADIUS_RATIO = 0.43;
 
-// High quality — noticeably smoother, ~2x the cost of Balanced at a 4-merge
-const RESOLUTION_BASE = 28; // resolution for a solo ball
-const RESOLUTION_STEP_PER_PUYO = 6; // added per extra merged ball
-const RESOLUTION_CAP = 44; // max resolution, at a 4-merge
-const MAX_POLY_COUNT_BASE = 1000; // triangle budget for a solo ball
-const MAX_POLY_COUNT_STEP_PER_PUYO = 2000; // added per extra merged ball
-const MAX_POLY_COUNT_CAP = 7000; // max triangle budget, at a 4-merge
+// Resolution/triangle budget scale with a group's actual span — its
+// bounding box, in cells — not its member count (a solo ball vs. a 2x2
+// cluster need different detail for the same count). Proximity-based
+// grouping (see groupByProximity) mostly keeps a group's span small, but a
+// long chain of near-neighbours can still connect transitively into
+// something board-spanning — this cap is deliberately conservative (48, not
+// the ~96+ true solo-ball parity would need for a board-spanning field) to
+// keep that (rare) case affordable; it'll look softer than a tight cluster,
+// not literally broken like an unrounded/oversized resolution previously
+// caused.
+//
+// The step is derived, not guessed: fieldScale grows by cellSize/2 per cell
+// of span (see computeFieldLayout), so to hold voxel density constant
+// (matching a solo ball's quality), resolution has to grow by the same
+// fraction — base/(2*MARGIN_CELLS) per cell. A flatter step under-resolves
+// anything wider than a tight cluster (this is what made whole-colour
+// grouping, tried and reverted, look blocky).
+const RESOLUTION_BASE = 28; // resolution at 0 cells of span (a solo ball)
+const RESOLUTION_STEP_PER_CELL = RESOLUTION_BASE / (2 * MARGIN_CELLS);
+const RESOLUTION_CAP = 48;
 
-function getResolution(size: number) {
-  return Math.min(
-    RESOLUTION_CAP,
-    RESOLUTION_BASE + (size - 1) * RESOLUTION_STEP_PER_PUYO,
+function getResolution(spanCells: number) {
+  // Must be an integer: MarchingCubesImpl uses this directly as `this.size`
+  // for all its index math (size2 = size*size, offsets, loop bounds), while
+  // its typed arrays get integer-truncated lengths from it — a fractional
+  // resolution desyncs that math from the actual buffer sizes, silently
+  // breaking the generated geometry (this is why merged/multi-ball groups,
+  // span > 0, went invisible while solo balls, always exactly
+  // RESOLUTION_BASE, kept working).
+  return Math.round(
+    Math.min(
+      RESOLUTION_CAP,
+      RESOLUTION_BASE + spanCells * RESOLUTION_STEP_PER_CELL,
+    ),
   );
 }
-function getMaxPolyCount(size: number) {
-  return Math.min(
-    MAX_POLY_COUNT_CAP,
-    MAX_POLY_COUNT_BASE + (size - 1) * MAX_POLY_COUNT_STEP_PER_PUYO,
+
+// Derived from resolution, not scaled independently: for a fixed set of
+// ball shapes, triangle count tracks the surface's tessellation density
+// squared (a 2D manifold), not resolution cubed like the field-fill cost.
+const MAX_POLY_COUNT_BASE = 1000; // triangle budget at RESOLUTION_BASE
+
+function getMaxPolyCount(spanCells: number) {
+  const resolution = getResolution(spanCells);
+
+  return Math.round(
+    MAX_POLY_COUNT_BASE * Math.pow(resolution / RESOLUTION_BASE, 2),
+  );
+}
+
+// The bounding box (in grid cells) spanned by a group's members — see
+// getResolution/getMaxPolyCount above for why this replaced member count.
+function getGroupSpanCells(grid: Grid, ids: string[]): number {
+  const positions = ids
+    .map((id) => getPuyoPosition(grid, id))
+    .filter(
+      (position): position is [number, number] =>
+        position[0] !== null && position[1] !== null,
+    );
+
+  if (positions.length === 0) {
+    return 0;
+  }
+
+  const columns = positions.map(([column]) => column);
+  const rows = positions.map(([, row]) => row);
+
+  return Math.max(
+    Math.max(...columns) - Math.min(...columns),
+    Math.max(...rows) - Math.min(...rows),
   );
 }
 
@@ -141,7 +195,13 @@ type PositionMap = Map<string, [number, number]>;
 // across a merge/split the same way its position already does.
 type VelocityMap = Map<string, [number, number]>;
 
-type Group = { colour: PuyoColour; ids: string[] };
+type Group = {
+  // Stable across renders as long as any one member survives — see
+  // groupByProximity below for why this matters for React's key prop.
+  key: string;
+  colour: PuyoColour;
+  ids: string[];
+};
 
 type ExitingGroup = {
   key: string;
@@ -236,49 +296,153 @@ function computeFieldLayout(positions: [number, number][], cellSize: number) {
   // (dynamic) field size.
   const strength = computeStrength(fieldScale, cellSize);
 
-  return { centerX, centerY, fieldScale, strength };
+  // Every puyo sits at the same depth (addBall's ballZ is always 0.5) — the
+  // mesh's Z-extent never actually needs to grow with the group's XY span
+  // the way fieldScale does. Scaling Z uniformly with fieldScale anyway
+  // wastes voxel density on empty depth for any group wider than a solo
+  // ball, and MarchingCubes's own triangulation pass skips its outermost
+  // layer asymmetrically per axis (1 layer at one end, 2 at the other —
+  // see the onBeforeRender loop bounds), which becomes visible as a
+  // lopsided "chopped" clip once a ball's own extent is only a few voxels
+  // wide relative to the field. Keeping depth fixed at a solo ball's own
+  // fieldScale keeps it comfortably resolved regardless of how wide the
+  // group is.
+  const depthScale = cellSize * MARGIN_CELLS;
+
+  return { centerX, centerY, fieldScale, depthScale, strength };
 }
 
-// While the user's piece can still fall further, its grid cell can
-// transiently line up beside an already-landed puyo of the same colour for
-// the single tick it happens to pass that row — merging and un-merging the
-// blob as it falls past, which reads as a flicker. Keep the falling piece in
-// its own island (still allowed to merge with itself) until it actually
-// comes to rest, at which point the caller stops calling this and falls back
-// to plain getPuyoGroups.
-function getGroupsExcludingFallingPiece(
-  grid: Grid,
-  puyos: Puyos,
-  userPuyoIds: [string, string],
-): PuyoGroup[] {
-  const settledGrid = cloneGrid(grid);
-  const fallingGrid: Grid = grid.map((columns) => columns.map(() => null));
-  const fallingPuyos: Puyos = {};
+// How close (in grid cells, Chebyshev distance) two same-coloured puyos
+// have to be to share a field. 1 would mean "only actual grid neighbours" —
+// the original adjacency grouping, which only merged right at the moment of
+// landing. Going slightly wider than that lets a falling piece visually
+// start blending into a same-coloured neighbour a little before it's
+// literally touching (the "allow merging while passing" behaviour), instead
+// of a merge that only ever appears once contact is exact.
+const PROXIMITY_THRESHOLD_CELLS = 2;
 
-  userPuyoIds.forEach((id) => {
-    const [column, row] = getPuyoPosition(grid, id);
+// Clusters same-coloured puyos that are within PROXIMITY_THRESHOLD_CELLS of
+// each other (transitively — a chain of near neighbours joins into one
+// group even if its ends are far apart), rather than either strict grid
+// adjacency or the whole colour at once. Both of those were tried and
+// reverted:
+// - Strict adjacency (distance 1) only ever grouped right at the moment of
+//   landing, which read as a sudden merge rather than the pieces "passing"
+//   into each other.
+// - Whole-colour grouping had no discrete join/split at all, but every
+//   member shared one field spanning the colour's entire bounding box — any
+//   single member moving (eg. the falling piece) reshaped/rescaled that
+//   field for every other member, even ones sitting still elsewhere on the
+//   board.
+// Bounding group membership to actual proximity keeps each field's span
+// (and thus its resize-on-movement blast radius) local to genuinely nearby
+// balls. This does reintroduce discrete group changes when two clusters
+// merge — previously the source of visible flicker — but that was likely
+// compounded by two bugs since fixed: fractional marching-cubes resolution
+// (see getResolution) and the falling piece's own bounce oscillating its
+// distance to neighbours (both fixed since the last time this was tried).
+// Each returned group's key is its lowest surviving id (see Group) so a
+// cluster that gains a member via merging keeps the same React key/mesh
+// instance instead of remounting — only the absorbed cluster's own
+// (now-redundant) mesh unmounts.
+function groupByProximity(grid: Grid, puyos: Puyos): Group[] {
+  const idsByColour = new Map<PuyoColour, string[]>();
+  const positionById = new Map<string, [number, number]>();
 
-    if (column !== null && row !== null) {
-      settledGrid[row][column] = null;
-      fallingGrid[row][column] = id;
-      fallingPuyos[id] = puyos[id];
+  Object.keys(puyos).forEach((puyoId) => {
+    const [column, row] = getPuyoPosition(grid, puyoId);
+
+    if (column === null || row === null) {
+      return;
     }
+
+    positionById.set(puyoId, [column, row]);
+
+    const colour = puyos[puyoId].colour;
+    const ids = idsByColour.get(colour) ?? [];
+    ids.push(puyoId);
+    idsByColour.set(colour, ids);
   });
 
-  return [
-    ...getPuyoGroups(settledGrid, puyos),
-    ...getPuyoGroups(fallingGrid, fallingPuyos),
-  ];
+  const groups: Group[] = [];
+
+  idsByColour.forEach((ids, colour) => {
+    // Union-find over this colour's ids, connecting any pair within the
+    // proximity threshold.
+    const parent = new Map<string, string>(ids.map((id) => [id, id]));
+
+    const find = (id: string): string => {
+      let root = id;
+
+      while (parent.get(root) !== root) {
+        root = parent.get(root) as string;
+      }
+
+      let current = id;
+
+      while (parent.get(current) !== root) {
+        const next = parent.get(current) as string;
+        parent.set(current, root);
+        current = next;
+      }
+
+      return root;
+    };
+
+    const union = (a: string, b: string) => {
+      const rootA = find(a);
+      const rootB = find(b);
+
+      if (rootA !== rootB) {
+        parent.set(rootA, rootB);
+      }
+    };
+
+    for (let i = 0; i < ids.length; i += 1) {
+      for (let j = i + 1; j < ids.length; j += 1) {
+        const [column1, row1] = positionById.get(ids[i]) as [number, number];
+        const [column2, row2] = positionById.get(ids[j]) as [number, number];
+        const distance = Math.max(
+          Math.abs(column1 - column2),
+          Math.abs(row1 - row2),
+        );
+
+        if (distance <= PROXIMITY_THRESHOLD_CELLS) {
+          union(ids[i], ids[j]);
+        }
+      }
+    }
+
+    const idsByRoot = new Map<string, string[]>();
+
+    ids.forEach((id) => {
+      const root = find(id);
+      const clusterIds = idsByRoot.get(root) ?? [];
+      clusterIds.push(id);
+      idsByRoot.set(root, clusterIds);
+    });
+
+    idsByRoot.forEach((clusterIds) => {
+      groups.push({
+        key: clusterIds.slice().sort()[0],
+        colour,
+        ids: clusterIds,
+      });
+    });
+  });
+
+  return groups;
 }
 
 /**
- * Renders same-coloured, grid-adjacent puyos as merging metaball blobs
- * (marching cubes). Every puyo — solo or clustered — renders the same way
- * (one small field per touching group, sized to that group's bounding box),
- * so there's no visual pop from switching rendering techniques. Field
- * resolution/triangle budget scale with group size, since a lone ball needs
- * far less detail than an actual merge, which keeps the common (mostly
- * unmerged) case cheap.
+ * Renders same-coloured puyos as merging metaball blobs (marching cubes).
+ * Every puyo — solo or clustered — renders the same way (one field per
+ * colour, sized to that colour's current bounding box), so there's no
+ * visual pop from switching rendering techniques. Groups are proximity-based
+ * (see groupByProximity above), so nearby same-coloured puyos share one
+ * field and everything else renders independently. Field resolution/triangle
+ * budget scale with group size, since a lone ball needs far less detail
+ * than an actual merge, which keeps the common (mostly unmerged) case cheap.
  */
 export const PuyoMetaballs: React.FC<Props> = ({
   grid,
@@ -288,7 +452,7 @@ export const PuyoMetaballs: React.FC<Props> = ({
 }) => {
   const positionsRef = React.useRef<PositionMap>(new Map());
   const velocitiesRef = React.useRef<VelocityMap>(new Map());
-  const previousGroupsRef = React.useRef<Group[]>([]);
+  const previousClusterGroupsRef = React.useRef<PuyoGroup[]>([]);
   const exitKeyRef = React.useRef(0);
   const [exitingGroups, setExitingGroups] = React.useState<ExitingGroup[]>([]);
 
@@ -301,43 +465,56 @@ export const PuyoMetaballs: React.FC<Props> = ({
   );
   const rotationArcRef = React.useRef<RotationArc | null>(null);
 
-  const groups = React.useMemo(() => {
-    // Read directly off the live grid (rather than the store's gameState,
-    // which only flips to 'landing-puyos' a full tick after the piece is
-    // already resting) so merging can start the instant it truly can't fall
-    // any further — letting the existing position lerp (below) visibly close
-    // the last bit of distance instead of snapping in already-converged.
-    const canStillFall = countEmptyCellsBelow(grid, userPuyoIds) > 0;
-    const rawGroups = canStillFall
-      ? getGroupsExcludingFallingPiece(grid, puyos, userPuyoIds)
-      : getPuyoGroups(grid, puyos);
+  // Hide top two rows for new puyos, same as the old ThreeBoard rendering.
+  // Generic so it works for both the (keyed) render groups and the
+  // (unkeyed) cluster groups below.
+  const hideQueuedIds = React.useCallback(
+    <T extends { ids: string[] }>(rawGroups: T[]): T[] =>
+      rawGroups
+        .map((group) => ({
+          ...group,
+          ids: group.ids.filter((id) => {
+            const [, row] = getPuyoPosition(grid, id);
+            return row !== null && row > 1;
+          }),
+        }))
+        .filter((group) => group.ids.length > 0),
+    [grid],
+  );
 
-    // Hide top two rows for new puyos, same as the old ThreeBoard rendering.
-    return rawGroups
-      .map((group) => ({
-        ...group,
-        ids: group.ids.filter((id) => {
-          const [, row] = getPuyoPosition(grid, id);
-          return row !== null && row > 1;
-        }),
-      }))
-      .filter((group) => group.ids.length > 0);
-  }, [grid, puyos, userPuyoIds]);
+  // What's actually rendered as merging blobs — see groupByProximity above.
+  const groups = React.useMemo(
+    () => hideQueuedIds(groupByProximity(grid, puyos)),
+    [grid, puyos, hideQueuedIds],
+  );
 
-  // useLayoutEffect (not useEffect): this reacts to a group vanishing from
-  // `groups` by swapping in its sink-away replacement. useEffect fires after
-  // the browser has already painted the frame where the group's mesh was
-  // removed — with R3F's render loop repainting every animation frame
+  // A *connected* (strictly grid-adjacent) grouping, separate from the
+  // proximity-based render groups above — only used to detect a specific
+  // cluster clearing (below), which must match the game's actual
+  // connected-4 clear logic exactly. The render groups' looser proximity
+  // threshold can bundle together (or split apart) puyos differently than
+  // the strict adjacency the clear logic uses, so they can't stand in for
+  // this.
+  const clusterGroups = React.useMemo(
+    () => hideQueuedIds(getPuyoGroups(grid, puyos)),
+    [grid, puyos, hideQueuedIds],
+  );
+
+  // useLayoutEffect (not useEffect): this reacts to a cluster vanishing from
+  // `clusterGroups` by swapping in its sink-away replacement. useEffect fires
+  // after the browser has already painted the frame where the group's mesh
+  // was removed — with R3F's render loop repainting every animation frame
   // regardless of React's own commit timing, that gap was enough for the
   // group to visibly vanish for a frame (or more) before reappearing to sink
   // away. useLayoutEffect's setState is flushed synchronously before paint,
   // so the removal and its sink-away replacement land in the same frame.
   React.useLayoutEffect(() => {
-    // A group that just cleared disappears from the grid entirely, all at
+    // A cluster that just cleared disappears from the grid entirely, all at
     // once — spot that so it can sink away instead of popping out of
     // existence. (Can't key this off `puyos` — the store never deletes
-    // cleared ids from it, only nulls their grid cells.)
-    const newlyCleared = previousGroupsRef.current.filter((group) =>
+    // cleared ids from it, only nulls their grid cells.) Uses clusterGroups
+    // (connected, not colour-wide) — see clusterGroups above for why.
+    const newlyCleared = previousClusterGroupsRef.current.filter((group) =>
       group.ids.every((id) => {
         const [column, row] = getPuyoPosition(grid, id);
         return column === null || row === null;
@@ -375,8 +552,8 @@ export const PuyoMetaballs: React.FC<Props> = ({
       }
     });
 
-    previousGroupsRef.current = groups;
-  }, [groups, grid]);
+    previousClusterGroupsRef.current = clusterGroups;
+  }, [groups, clusterGroups, grid]);
 
   React.useEffect(() => {
     const [userId1, userId2] = userPuyoIds;
@@ -468,7 +645,10 @@ export const PuyoMetaballs: React.FC<Props> = ({
     <>
       {groups.map((group) => (
         <MetaballBlob
-          key={group.ids.slice().sort().join(',')}
+          // See Group/groupByProximity above: a cluster's key is its lowest
+          // member id, so it survives a merge (only the absorbed cluster's
+          // own component unmounts).
+          key={group.key}
           colour={group.colour}
           ids={group.ids}
           grid={grid}
@@ -520,7 +700,7 @@ const MetaballBlob: React.FC<BlobProps> = ({
     const positions = positionsRef.current;
     const velocities = velocitiesRef.current;
 
-    const worldPositions: [number, number][] = ids
+    const worldPositions = ids
       .map((id) => {
         const [column, row] = getPuyoPosition(grid, id);
 
@@ -551,29 +731,26 @@ const MetaballBlob: React.FC<BlobProps> = ({
             const x = pivotPos[0] + Math.cos(angle) * cellSize;
             const y = pivotPos[1] + Math.sin(angle) * cellSize;
 
-            positions.set(id, [x, y]);
-            // Directly driven by the arc, not the spring — zero its velocity
-            // so that once the arc finishes, the spring resumes from rest
-            // instead of carrying over a stale velocity and flicking off in
-            // some unrelated direction.
+            const arcPosition: [number, number] = [x, y];
+
+            positions.set(id, arcPosition);
+            // Directly driven by the arc, not the spring — zero the
+            // velocity so that once the arc finishes, the spring resumes
+            // from rest instead of carrying over a stale velocity and
+            // flicking off in some unrelated direction.
             velocities.set(id, [0, 0]);
 
             if (progress >= 1) {
               rotationArcRef.current = null;
             }
 
-            return [x, y] as [number, number];
+            return arcPosition;
           }
         }
 
         const previous = positions.get(id) ?? [targetX, targetY];
         const velocity = velocities.get(id) ?? [0, 0];
 
-        // Semi-implicit Euler integration of a damped spring: starts at rest
-        // and accelerates toward the target (unlike an ease-out lerp, which
-        // is fastest right when the target changes), then — being slightly
-        // underdamped — settles with a small overshoot rather than a dead
-        // stop. See SPRING_ANGULAR_FREQUENCY above.
         const vx =
           velocity[0] +
           ((targetX - previous[0]) * springStiffness -
@@ -599,13 +776,11 @@ const MetaballBlob: React.FC<BlobProps> = ({
       return;
     }
 
-    const { centerX, centerY, fieldScale, strength } = computeFieldLayout(
-      worldPositions,
-      cellSize,
-    );
+    const { centerX, centerY, fieldScale, depthScale, strength } =
+      computeFieldLayout(worldPositions, cellSize);
 
     effect.position.set(centerX, centerY, 0);
-    effect.scale.set(fieldScale, fieldScale, fieldScale);
+    effect.scale.set(fieldScale, fieldScale, depthScale);
 
     effect.reset();
 
@@ -620,15 +795,17 @@ const MetaballBlob: React.FC<BlobProps> = ({
     // automatically in the mesh's onBeforeRender hook when the renderer draws it.
   });
 
+  const spanCells = getGroupSpanCells(grid, ids);
+
   return (
     <marchingCubes
       ref={effectRef}
       args={[
-        getResolution(ids.length),
+        getResolution(spanCells),
         undefined,
         false,
         false,
-        getMaxPolyCount(ids.length),
+        getMaxPolyCount(spanCells),
       ]}
       isolation={ISOLATION}
     >
@@ -664,6 +841,18 @@ const SinkingMetaballBlob: React.FC<SinkingBlobProps> = ({
     [positions, cellSize],
   );
   const totalDuration = getSinkAnimationDurationSeconds(positions.length);
+  // A cleared cluster is always tightly grid-adjacent, so this stays small.
+  const spanCells = React.useMemo(() => {
+    const xs = positions.map(([x]) => x);
+    const ys = positions.map(([, y]) => y);
+
+    return (
+      Math.max(
+        Math.max(...xs) - Math.min(...xs),
+        Math.max(...ys) - Math.min(...ys),
+      ) / cellSize
+    );
+  }, [positions, cellSize]);
 
   useFrame((_, delta) => {
     const effect = effectRef.current;
@@ -685,14 +874,14 @@ const SinkingMetaballBlob: React.FC<SinkingBlobProps> = ({
     const currentSubtract =
       SUBTRACT + (SINK_SUBTRACT - SUBTRACT) * smoothstep(subtractRampProgress);
 
-    const { centerX, centerY, fieldScale } = layout;
+    const { centerX, centerY, fieldScale, depthScale } = layout;
 
     effect.position.set(
       centerX,
       centerY - overallEased * cellSize * SINK_DISTANCE_CELLS,
       0,
     );
-    effect.scale.set(fieldScale, fieldScale, fieldScale);
+    effect.scale.set(fieldScale, fieldScale, depthScale);
 
     effect.reset();
 
@@ -734,11 +923,11 @@ const SinkingMetaballBlob: React.FC<SinkingBlobProps> = ({
     <marchingCubes
       ref={effectRef}
       args={[
-        getResolution(positions.length),
+        getResolution(spanCells),
         undefined,
         false,
         false,
-        getMaxPolyCount(positions.length),
+        getMaxPolyCount(spanCells),
       ]}
       isolation={ISOLATION}
     >
