@@ -1,5 +1,5 @@
 import { Grid, Puyos } from '../store/store';
-import { cloneGrid, getPuyoPosition } from './grid';
+import { cloneGrid, getAdjacentPuyoIds, getPuyoPosition } from './grid';
 
 /**
  * Get new grid with cleared puyos. Use breadth first search algo.
@@ -68,36 +68,4 @@ export function clearPuyos(
   });
 
   return [grid, totalPuyoIdsToClear, totalCount];
-}
-
-/**
- * Get puyoIds of adjacent puyos
- * @param grid
- * @param puyoId
- * @returns
- */
-export function getAdjacentPuyoIds(grid: Grid, puyoId: string): string[] {
-  const [column, row] = getPuyoPosition(grid, puyoId);
-  let puyos = [];
-
-  if (typeof column === 'number' && typeof row === 'number') {
-    // Top
-    if (grid[row - 1] && grid[row - 1][column]) {
-      puyos.push(grid[row - 1][column]);
-    }
-    // Right
-    if (grid[row][column + 1]) {
-      puyos.push(grid[row][column + 1]);
-    }
-    // Bottom
-    if (grid[row + 1] && grid[row][column]) {
-      puyos.push(grid[row + 1][column]);
-    }
-    // Left
-    if (grid[row][column - 1]) {
-      puyos.push(grid[row][column - 1]);
-    }
-  }
-
-  return puyos as string[];
 }

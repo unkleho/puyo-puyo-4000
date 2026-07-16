@@ -6,18 +6,23 @@ import { Alert } from './Alert';
 import { Audio } from './Audio';
 import { ControlButtons } from './ControlButtons';
 import { IconButton } from './IconButton';
+import { getSinkAnimationDurationSeconds } from './PuyoMetaballs';
 import { PuyoPuyoLogo } from './PuyoPuyoLogo';
 import { Score } from './Score';
 import { ThreeBoard } from './ThreeBoard';
 import { ThreeQueue } from './ThreeQueue';
 
-export const COLLAPSE_PUYOS_TIMEOUT = 400;
+// Used when entering collapse-puyos with nothing just cleared (the active
+// piece landed unsupported) — there's no exit animation to wait for, just a
+// short beat before it settles.
+export const COLLAPSE_PUYOS_TIMEOUT = 150;
 const CLEAR_PUYOS_TIMEOUT = 400;
 const LANDING_PUYOS_TIMEOUT = 300;
 
 export const Game = () => {
   const grid = useStore((store) => store.grid);
   const localGameState = useStore((store) => store.gameState);
+  const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
   const tickSpeed = useStore((store) => store.tickSpeed);
   const score = useStore((store) => store.score);
   const totalChainCount = useStore((store) => store.totalChainCount);
@@ -108,9 +113,26 @@ export const Game = () => {
       window.clearInterval(interval);
       landedPuyos();
     } else if (gameState === 'collapse-puyos') {
+      // If puyoIdsToClear is non-empty, we just cleared a group and its
+      // sink-away exit animation (in PuyoMetaballs) is still playing —
+      // dropping the rest of the board into the gap before that finishes
+      // reads as the drop happening "too soon". Wait out however long the
+      // largest cleared group's animation actually takes instead of the
+      // short, fixed COLLAPSE_PUYOS_TIMEOUT (which is for the other case
+      // this state handles: the active piece landing unsupported, with no
+      // exit animation to wait for).
+      const delay =
+        puyoIdsToClear.length > 0
+          ? Math.max(
+              ...puyoIdsToClear.map((group) =>
+                getSinkAnimationDurationSeconds(group.length),
+              ),
+            ) * 1000
+          : COLLAPSE_PUYOS_TIMEOUT;
+
       window.setTimeout(() => {
         collapsePuyos();
-      }, COLLAPSE_PUYOS_TIMEOUT);
+      }, delay);
     } else if (gameState === 'clear-puyos') {
       window.setTimeout(() => {
         clearPuyos();
@@ -126,6 +148,7 @@ export const Game = () => {
     };
   }, [
     gameState,
+    puyoIdsToClear,
     tickSpeed,
     movePuyos,
     addPuyos,
