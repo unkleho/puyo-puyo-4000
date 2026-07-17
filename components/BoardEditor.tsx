@@ -5,6 +5,7 @@ import { GridLine } from './ThreeBoard';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
 import { PuyoPuyoLogo } from './PuyoPuyoLogo';
+import useDeviceDetect from '../hooks/use-device-detect';
 import { ENABLE_METABALL_PUYOS, ENABLE_RAYMARCH_PUYOS } from '../shared/config';
 import { clearPuyos } from '../shared/clear-puyos';
 import { cloneGrid, collapsePuyos, getPuyoPosition } from '../shared/grid';
@@ -94,6 +95,10 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
   const setDialogOpen = useStore((store) => store.setDialogOpen);
   const volume = useAudioStore((store) => store.volume);
   const setVolume = useAudioStore((store) => store.setVolume);
+  // ControlButtons hits this same issue — plain onClick doesn't fire
+  // reliably on a mobile touchscreen here, so taps are handled via
+  // onTouchStart instead, guarded so desktop doesn't double-fire.
+  const { isMobile } = useDeviceDetect();
 
   // Avoids an SSR/client markup mismatch on first paint — same guard
   // Game.tsx uses around its own volume icon.
@@ -107,6 +112,15 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
   const [tool, setTool] = React.useState<Tool>(PuyoColour.RED);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const nextIdRef = React.useRef(0);
+
+  // The board you had right before the last Play press — lets Reset put you
+  // back at the start of a chain instead of wiping it, so you can watch the
+  // same layout resolve again. Stays null until Play has actually run once,
+  // so Reset on a freshly-drawn, never-played board just clears it as usual.
+  const [prePlaySnapshot, setPrePlaySnapshot] = React.useState<{
+    grid: Grid;
+    puyos: Puyos;
+  } | null>(null);
 
   // Same board-sizing formula as ThreeBoard.tsx, so the editor's board
   // matches the real game's board pixel-for-pixel at any screen size.
@@ -131,12 +145,12 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
     const existingId = newGrid[row][column];
 
     if (existingId) {
+      // Clicking a cell that already has a puyo removes it — a second tap
+      // acts as a toggle, regardless of which tool is currently selected,
+      // rather than recolouring it in place.
       delete newPuyos[existingId];
-    }
-
-    if (tool === 'erase') {
       newGrid[row][column] = null;
-    } else {
+    } else if (tool !== 'erase') {
       const id = `editor-${nextIdRef.current}`;
       nextIdRef.current += 1;
       newGrid[row][column] = id;
@@ -152,8 +166,13 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
       return;
     }
 
-    setGrid(createEmptyGrid());
-    setPuyos({});
+    if (prePlaySnapshot) {
+      setGrid(prePlaySnapshot.grid);
+      setPuyos(prePlaySnapshot.puyos);
+    } else {
+      setGrid(createEmptyGrid());
+      setPuyos({});
+    }
   };
 
   const handlePlay = async () => {
@@ -161,6 +180,7 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
       return;
     }
 
+    setPrePlaySnapshot({ grid, puyos });
     setIsPlaying(true);
 
     let currentGrid = grid;
@@ -346,7 +366,7 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
         (column, row) from each cell's own index, rather than raycasting
         into the 3D scene and inverting the board's world-position math. */}
           <div
-            className="absolute inset-0 grid"
+            className="absolute inset-1 grid"
             style={{
               gridTemplateColumns: `repeat(${COLUMNS}, 1fr)`,
               gridTemplateRows: `repeat(${VISIBLE_ROWS}, 1fr)`,
@@ -362,7 +382,14 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
                   type="button"
                   disabled={isPlaying}
                   className="h-full w-full border-0 bg-transparent p-0 hover:bg-white/5"
-                  onClick={() => handleCellClick(column, row)}
+                  onClick={() => {
+                    if (!isMobile) {
+                      handleCellClick(column, row);
+                    }
+                  }}
+                  onTouchStart={() => {
+                    handleCellClick(column, row);
+                  }}
                 />
               );
             })}
