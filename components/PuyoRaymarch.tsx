@@ -22,6 +22,18 @@ import { ENABLE_PUYO_WOBBLE } from '../shared/config';
 // would already be well into a losing state).
 const MAX_BALLS = 72;
 
+// Raymarch step cap — this, and the sceneSDF loop it re-runs every step,
+// is the other big per-pixel cost lever alongside devicePixelRatio (see
+// ThreeBoard's Canvas dpr). Can't be a live-tweakable uniform like the
+// shading constants further down: it's a GLSL loop bound, and WebGL1
+// (GLSL ES 1.00) generally requires those to be compile-time constants,
+// so it has to stay a #define. Safe to lower — the anti-aliased silhouette
+// comes from a separate, single SDF evaluation at z = 0 (see edgeDist),
+// not from how well this loop converges, so an under-converged shading
+// position only costs a little normal/highlight accuracy right at a
+// tricky merge neck, never a visible edge artifact.
+const MAX_STEPS = 20;
+
 const COLOUR_INDEX: Record<PuyoColour, number> = puyoColours.reduce(
   (acc, colour, index) => ({ ...acc, [colour]: index }),
   {} as Record<PuyoColour, number>,
@@ -249,14 +261,8 @@ const vertexShader = /* glsl */ `
 const fragmentShader = /* glsl */ `
   #define MAX_BALLS ${MAX_BALLS}
   #define NUM_COLOURS 5
-  // Each step re-evaluates sceneSDF (cost scales with uBallCount), so this
-  // is one of the biggest per-pixel cost levers as the board fills up. Cut
-  // from 40 — safe to lower since the anti-aliased silhouette is derived
-  // separately (a single SDF evaluation at z = 0, see edgeDist below), not
-  // from how well this loop converges; an under-converged shading position
-  // right at a tricky merge neck only costs a little normal/highlight
-  // accuracy there, never a visible artifact at the silhouette itself.
-  #define MAX_STEPS 26
+  // See MAX_STEPS above for what this trades off.
+  #define MAX_STEPS ${MAX_STEPS}
 
   varying vec2 vXY;
 
