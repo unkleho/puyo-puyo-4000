@@ -5,6 +5,7 @@ import { Grid, Puyos, PuyoColour } from '../store/store';
 import { getPuyoPosition } from '../shared/grid';
 import { PuyoSphere } from './PuyoSphere';
 import { PuyoMetaballs } from './PuyoMetaballs';
+import { PuyoRaymarch } from './PuyoRaymarch';
 
 const stone700 = 'rgb(58, 54, 50)';
 const stone950 = 'rgb(23, 20, 18)';
@@ -53,8 +54,12 @@ function buildTestData(): { grid: Grid; puyos: Puyos } {
  * Standalone board with a fixed set of static red puyos, for tuning the
  * PuyoMetaballs merge look without needing to play the game.
  */
+type RenderMode = 'raymarch' | 'metaballs' | 'spheres';
+
+const RENDER_MODES: RenderMode[] = ['raymarch', 'metaballs', 'spheres'];
+
 export const MetaballTestBoard: React.FC = () => {
-  const [showMetaballs, setShowMetaballs] = React.useState(true);
+  const [renderMode, setRenderMode] = React.useState<RenderMode>('raymarch');
   const { grid, puyos } = React.useMemo(buildTestData, []);
 
   const width = CELL_SIZE * COLUMNS;
@@ -64,10 +69,16 @@ export const MetaballTestBoard: React.FC = () => {
     <div className="flex flex-col items-center gap-4">
       <button
         className="rounded bg-stone-700 px-3 py-1.5 text-sm text-stone-100 hover:bg-stone-600"
-        onClick={() => setShowMetaballs((value) => !value)}
+        onClick={() =>
+          setRenderMode(
+            (value) =>
+              RENDER_MODES[
+                (RENDER_MODES.indexOf(value) + 1) % RENDER_MODES.length
+              ],
+          )
+        }
       >
-        {showMetaballs ? 'Showing metaballs' : 'Showing spheres'} (click to
-        toggle)
+        Showing {renderMode} (click to cycle)
       </button>
 
       <div
@@ -81,7 +92,15 @@ export const MetaballTestBoard: React.FC = () => {
             position: [0, 0, 100],
           }}
         >
-          {showMetaballs ? (
+          {renderMode === 'raymarch' ? (
+            <PuyoRaymarch
+              grid={grid}
+              puyos={puyos}
+              cellSize={CELL_SIZE}
+              // No user-controlled piece on this static test board.
+              userPuyoIds={['none-1', 'none-2']}
+            />
+          ) : renderMode === 'metaballs' ? (
             <PuyoMetaballs
               grid={grid}
               puyos={puyos}

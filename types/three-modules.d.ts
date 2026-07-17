@@ -5,3 +5,8 @@ declare module 'three/examples/jsm/objects/MarchingCubes' {
   const MarchingCubes: any;
   export { MarchingCubes };
 }
+
+declare module 'three' {
+  const THREE: any;
+  export = THREE;
+}

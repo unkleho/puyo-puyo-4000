@@ -2,9 +2,10 @@ import { Canvas, Dpr } from '@react-three/fiber';
 import { Line } from '@react-three/drei';
 import React from 'react';
 import { Grid, useStore } from '../store/store';
-import { ENABLE_METABALL_PUYOS } from '../shared/config';
+import { ENABLE_METABALL_PUYOS, ENABLE_RAYMARCH_PUYOS } from '../shared/config';
 import { getPuyoPosition } from '../shared/grid';
 import { PuyoMetaballs } from './PuyoMetaballs';
+import { PuyoRaymarch } from './PuyoRaymarch';
 import { PuyoSphere, PuyoSphereAnimatePresence } from './PuyoSphere';
 import { PuyoType } from './Puyo';
 
@@ -74,7 +75,14 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         }}
         dpr={devicePixelRatio as Dpr}
       >
-        {ENABLE_METABALL_PUYOS ? (
+        {ENABLE_RAYMARCH_PUYOS ? (
+          <PuyoRaymarch
+            grid={grid}
+            puyos={puyos}
+            cellSize={cellSize}
+            userPuyoIds={userPuyoIds}
+          />
+        ) : ENABLE_METABALL_PUYOS ? (
           <PuyoMetaballs
             grid={grid}
             puyos={puyos}
