@@ -45,6 +45,14 @@ export const puyoColours = [
 export type PuyoMoveDirection = 'left' | 'right' | 'down' | 'rotate';
 export type PuyoMoveType = 'user' | 'board';
 export type PuyoRotation = 'up' | 'right' | 'down' | 'left';
+// Which way rotatePuyos turns the piece. Only clockwise rotation is
+// actually implemented (see rotatePuyosOnce below) — counter-clockwise is
+// three clockwise steps in a row rather than separately-implemented mirror
+// logic (with its own wall-kick/shift cases to get right), since three
+// 90° clockwise turns and one 90° counter-clockwise turn always land on
+// the same result in open space, and reusing the already-working clockwise
+// step means there's only one set of wall-kick rules to maintain.
+export type PuyoRotateDirection = 'cw' | 'ccw';
 
 export type Grid = (string | null)[][];
 const clearGrid = [
@@ -108,7 +116,7 @@ export type Store = {
   idleGame: () => void;
   setCellSize: (cellSize: number) => void;
   movePuyos: (direction: PuyoMoveDirection, type?: 'user' | 'board') => void;
-  rotatePuyos: () => void;
+  rotatePuyos: (direction?: PuyoRotateDirection) => void;
   addPuyos: () => void;
   landingPuyos: () => void;
   landedPuyos: () => void;
@@ -391,90 +399,18 @@ export const useStore = create<Store>((set) => ({
       };
     });
   },
-  rotatePuyos: () => {
+  rotatePuyos: (direction = 'cw') => {
     set((state) => {
-      const grid = cloneGrid(state.grid);
-      const [puyo1Id, puyo2Id] = state.userPuyoIds;
-      const [puyo1Column, puyo1Row] = getPuyoPosition(state.grid, puyo1Id);
-      const [puyo2Column, puyo2Row] = getPuyoPosition(state.grid, puyo2Id);
+      // See PuyoRotateDirection above for why 'ccw' is three 'cw' steps
+      // rather than its own mirrored implementation.
+      const steps = direction === 'ccw' ? 3 : 1;
+      let { grid, puyoRotation } = rotatePuyosOnce(
+        state.grid,
+        state.userPuyoIds,
+      );
 
-      // Work out relative position of puyo2
-      let puyoRotation: 'up' | 'right' | 'down' | 'left' = 'down';
-
-      if (
-        typeof puyo1Column === 'number' &&
-        typeof puyo1Row === 'number' &&
-        typeof puyo2Column === 'number' &&
-        typeof puyo2Row === 'number'
-      ) {
-        if (puyo1Column === puyo2Column) {
-          if (puyo1Row > puyo2Row) {
-            puyoRotation = 'up';
-          } else {
-            puyoRotation = 'down';
-          }
-        } else if (puyo1Row === puyo2Row) {
-          if (puyo1Column > puyo2Column) {
-            puyoRotation = 'left';
-          } else {
-            puyoRotation = 'right';
-          }
-        }
-
-        if (puyoRotation === 'up') {
-          if (grid[puyo1Row][puyo2Column + 1] === null) {
-            // Move puyo2 to the right of puyo1
-            grid[puyo2Row][puyo2Column] = null;
-            grid[puyo1Row][puyo2Column + 1] = puyo2Id;
-          } else if (grid[puyo1Row][puyo1Column - 1] === null) {
-            // There is room on left, so rotate and shift both puyos
-            grid[puyo2Row][puyo2Column] = null;
-            grid[puyo1Row][puyo1Column - 1] = puyo1Id;
-            grid[puyo1Row][puyo1Column] = puyo2Id;
-          } else if (
-            grid[puyo1Row][puyo1Column + 1] !== null &&
-            grid[puyo1Row][puyo1Column - 1] !== null
-          ) {
-            // No room on either side, so flip puyos
-            grid[puyo2Row][puyo2Column] = puyo1Id;
-            grid[puyo1Row][puyo1Column] = puyo2Id;
-          }
-        } else if (puyoRotation === 'right') {
-          if (grid[puyo1Row + 1] && grid[puyo1Row + 1][puyo1Column] === null) {
-            // Move puyo2 below puyo1
-            grid[puyo2Row][puyo2Column] = null;
-            grid[puyo1Row + 1][puyo1Column] = puyo2Id;
-          } else {
-            // Move puyo2 below puyo1 AND shift puyos up
-            grid[puyo2Row][puyo2Column] = null;
-            grid[puyo1Row - 1][puyo1Column] = puyo1Id;
-            grid[puyo2Row][puyo2Column - 1] = puyo2Id;
-          }
-        } else if (puyoRotation === 'down') {
-          if (grid[puyo1Row][puyo2Column - 1] === null) {
-            // Move puyo2 to the left of puyo1
-            grid[puyo2Row][puyo2Column] = null;
-            grid[puyo1Row][puyo2Column - 1] = puyo2Id;
-          } else if (grid[puyo1Row][puyo1Column + 1] === null) {
-            // There is room on right, so rotate and shift both puyos
-            grid[puyo2Row][puyo2Column] = null;
-            grid[puyo1Row][puyo1Column + 1] = puyo1Id;
-            grid[puyo1Row][puyo1Column] = puyo2Id;
-          } else if (
-            grid[puyo2Row][puyo2Column + 1] !== null &&
-            grid[puyo2Row][puyo2Column - 1] !== null
-          ) {
-            // No room on either side, so flip puyos
-            grid[puyo2Row][puyo2Column] = puyo1Id;
-            grid[puyo1Row][puyo1Column] = puyo2Id;
-          }
-        } else if (puyoRotation === 'left') {
-          if (grid[puyo2Row - 1] && grid[puyo2Row - 1][puyo1Column] === null) {
-            // Move puyo2 above of puyo1
-            grid[puyo2Row][puyo2Column] = null;
-            grid[puyo2Row - 1][puyo1Column] = puyo2Id;
-          }
-        }
+      for (let i = 1; i < steps; i += 1) {
+        ({ grid, puyoRotation } = rotatePuyosOnce(grid, state.userPuyoIds));
       }
 
       return {
@@ -580,6 +516,103 @@ export const useStore = create<Store>((set) => ({
     }),
   setDialogOpen: (isDialogOpen) => set(() => ({ isDialogOpen })),
 }));
+
+/**
+ * Rotates the user piece 90° clockwise once — reads positions from
+ * `sourceGrid`, returns a new grid (sourceGrid is left untouched). Called
+ * once for a clockwise rotation, three times in a row for counter
+ * -clockwise (see PuyoRotateDirection).
+ */
+function rotatePuyosOnce(
+  sourceGrid: Grid,
+  userPuyoIds: [string, string],
+): { grid: Grid; puyoRotation: PuyoRotation } {
+  const grid = cloneGrid(sourceGrid);
+  const [puyo1Id, puyo2Id] = userPuyoIds;
+  const [puyo1Column, puyo1Row] = getPuyoPosition(sourceGrid, puyo1Id);
+  const [puyo2Column, puyo2Row] = getPuyoPosition(sourceGrid, puyo2Id);
+
+  // Work out relative position of puyo2
+  let puyoRotation: PuyoRotation = 'down';
+
+  if (
+    typeof puyo1Column === 'number' &&
+    typeof puyo1Row === 'number' &&
+    typeof puyo2Column === 'number' &&
+    typeof puyo2Row === 'number'
+  ) {
+    if (puyo1Column === puyo2Column) {
+      if (puyo1Row > puyo2Row) {
+        puyoRotation = 'up';
+      } else {
+        puyoRotation = 'down';
+      }
+    } else if (puyo1Row === puyo2Row) {
+      if (puyo1Column > puyo2Column) {
+        puyoRotation = 'left';
+      } else {
+        puyoRotation = 'right';
+      }
+    }
+
+    if (puyoRotation === 'up') {
+      if (grid[puyo1Row][puyo2Column + 1] === null) {
+        // Move puyo2 to the right of puyo1
+        grid[puyo2Row][puyo2Column] = null;
+        grid[puyo1Row][puyo2Column + 1] = puyo2Id;
+      } else if (grid[puyo1Row][puyo1Column - 1] === null) {
+        // There is room on left, so rotate and shift both puyos
+        grid[puyo2Row][puyo2Column] = null;
+        grid[puyo1Row][puyo1Column - 1] = puyo1Id;
+        grid[puyo1Row][puyo1Column] = puyo2Id;
+      } else if (
+        grid[puyo1Row][puyo1Column + 1] !== null &&
+        grid[puyo1Row][puyo1Column - 1] !== null
+      ) {
+        // No room on either side, so flip puyos
+        grid[puyo2Row][puyo2Column] = puyo1Id;
+        grid[puyo1Row][puyo1Column] = puyo2Id;
+      }
+    } else if (puyoRotation === 'right') {
+      if (grid[puyo1Row + 1] && grid[puyo1Row + 1][puyo1Column] === null) {
+        // Move puyo2 below puyo1
+        grid[puyo2Row][puyo2Column] = null;
+        grid[puyo1Row + 1][puyo1Column] = puyo2Id;
+      } else {
+        // Move puyo2 below puyo1 AND shift puyos up
+        grid[puyo2Row][puyo2Column] = null;
+        grid[puyo1Row - 1][puyo1Column] = puyo1Id;
+        grid[puyo2Row][puyo2Column - 1] = puyo2Id;
+      }
+    } else if (puyoRotation === 'down') {
+      if (grid[puyo1Row][puyo2Column - 1] === null) {
+        // Move puyo2 to the left of puyo1
+        grid[puyo2Row][puyo2Column] = null;
+        grid[puyo1Row][puyo2Column - 1] = puyo2Id;
+      } else if (grid[puyo1Row][puyo1Column + 1] === null) {
+        // There is room on right, so rotate and shift both puyos
+        grid[puyo2Row][puyo2Column] = null;
+        grid[puyo1Row][puyo1Column + 1] = puyo1Id;
+        grid[puyo1Row][puyo1Column] = puyo2Id;
+      } else if (
+        grid[puyo2Row][puyo2Column + 1] !== null &&
+        grid[puyo2Row][puyo2Column - 1] !== null
+      ) {
+        // No room on either side, so flip puyos
+        grid[puyo2Row][puyo2Column] = puyo1Id;
+        grid[puyo1Row][puyo1Column] = puyo2Id;
+      }
+    } else if (puyoRotation === 'left') {
+      if (grid[puyo2Row - 1] && grid[puyo2Row - 1][puyo1Column] === null) {
+        // Move puyo2 above of puyo1
+        grid[puyo2Row][puyo2Column] = null;
+        grid[puyo2Row - 1][puyo1Column] = puyo2Id;
+      }
+    }
+  }
+
+  return { grid, puyoRotation };
+}
 
 /**
  * Get level and tick speed (ms) based on totalChainCount

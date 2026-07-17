@@ -83,6 +83,18 @@ export const Game = () => {
     }
   });
 
+  useKeyPress('z', [gameState], () => {
+    if (gameState !== 'paused' && gameState !== 'lose') {
+      rotatePuyos('ccw');
+    }
+  });
+
+  useKeyPress('x', [gameState], () => {
+    if (gameState !== 'paused' && gameState !== 'lose') {
+      rotatePuyos('cw');
+    }
+  });
+
   useKeyPress('ArrowDown', [gameState], () => {
     if (gameState !== 'paused' && gameState !== 'lose') {
       movePuyos('down');

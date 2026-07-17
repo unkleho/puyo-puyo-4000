@@ -21,22 +21,41 @@ export const ControlButtons: React.FC<Props> = ({ className }) => {
 
   return (
     <div className={['control-buttons gap-2', className || ''].join(' ')}>
-      <ControlButton
-        title="Rotate (Up)"
-        borders={{
-          topLeft: 'top',
-          topRight: 'top',
-          bottom: 'hide',
-          left: 'hide',
-          bottomLeft: 'hide',
-          right: 'hide',
-          bottomRight: 'hide',
-        }}
-        className="col-span-1 col-start-2"
-        onClick={() => rotatePuyos()}
-      >
-        <Icon name="rotate" />
-      </ControlButton>
+      <div className="col-span-1 col-start-2 flex">
+        <ControlButton
+          title="Rotate Anti-clockwise"
+          borders={{
+            topLeft: 'top',
+            bottom: 'hide',
+            left: 'hide',
+            bottomLeft: 'hide',
+            right: 'hide',
+            bottomRight: 'hide',
+          }}
+          className="flex-1"
+          onClick={() => rotatePuyos('ccw')}
+        >
+          {/* Same glyph as the clockwise icon, mirrored — there's no
+          separate anti-clockwise artwork in the icon sprite. */}
+          <Icon name="rotate" className="-scale-x-100" />
+        </ControlButton>
+
+        <ControlButton
+          title="Rotate Clockwise"
+          borders={{
+            topRight: 'top',
+            bottom: 'hide',
+            left: 'hide',
+            bottomLeft: 'hide',
+            right: 'hide',
+            bottomRight: 'hide',
+          }}
+          className="flex-1"
+          onClick={() => rotatePuyos('cw')}
+        >
+          <Icon name="rotate" />
+        </ControlButton>
+      </div>
 
       <ControlButton
         title="Left"
