@@ -45,6 +45,16 @@ const SPRING_DAMPING_RATIO = 0.6;
 // a frame hitch can make an explicit spring integration overshoot wildly
 // instead of just bouncing.
 const SPRING_MAX_DELTA_SECONDS = 1 / 30;
+// Caps how fast a puyo can fall (world Y decreasing), in cellSize units per
+// second — a rough "terminal velocity". A linear spring's settling time is
+// otherwise roughly independent of distance (a bigger drop just means a
+// proportionally bigger peak speed, not a longer duration), so a one-row
+// move and a five-row collapse would visually take about the same time.
+// This only kicks in once a fall is far enough that the spring's own speed
+// would exceed it — short, single-cell moves stay exactly as snappy as
+// before, but a longer fall spends real time coasting at this capped
+// speed, so it actually takes proportionally longer to arrive.
+const MAX_FALL_SPEED_CELLS_PER_SECOND = 6;
 
 // Margin (in cells) added around a group's bounding box so blobs have room
 // to bulge without hitting the field's edge.
@@ -517,6 +527,7 @@ const MetaballBlob: React.FC<BlobProps> = ({
     const dt = Math.min(delta, SPRING_MAX_DELTA_SECONDS);
     const springStiffness = SPRING_ANGULAR_FREQUENCY * SPRING_ANGULAR_FREQUENCY;
     const springDamping = 2 * SPRING_DAMPING_RATIO * SPRING_ANGULAR_FREQUENCY;
+    const maxFallSpeed = MAX_FALL_SPEED_CELLS_PER_SECOND * cellSize;
     const positions = positionsRef.current;
     const velocities = velocitiesRef.current;
 
@@ -579,11 +590,15 @@ const MetaballBlob: React.FC<BlobProps> = ({
           ((targetX - previous[0]) * springStiffness -
             velocity[0] * springDamping) *
             dt;
-        const vy =
+        let vy =
           velocity[1] +
           ((targetY - previous[1]) * springStiffness -
             velocity[1] * springDamping) *
             dt;
+
+        // Cap fall speed only (not a small upward shift, e.g. from a
+        // rotation wall-kick) — see MAX_FALL_SPEED_CELLS_PER_SECOND above.
+        vy = Math.max(vy, -maxFallSpeed);
 
         const x = previous[0] + vx * dt;
         const y = previous[1] + vy * dt;
