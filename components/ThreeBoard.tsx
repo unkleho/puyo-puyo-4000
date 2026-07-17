@@ -16,9 +16,6 @@ type Props = {
   className?: string;
 };
 
-const devicePixelRatio =
-  typeof window === 'object' ? window.devicePixelRatio : null;
-
 const stone600 = 'rgb(87, 83, 78)';
 // const stone700 = 'rgb(68, 64, 60)'; // Original TW colour
 const stone700 = 'rgb(58, 54, 50)'; // Altered colour because stone800 too dark in WebGL
@@ -73,7 +70,18 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
           zoom: 1,
           position: [0, 0, 100],
         }}
-        dpr={devicePixelRatio as Dpr}
+        // Capped rather than the raw devicePixelRatio: PuyoRaymarch's cost
+        // is entirely per-pixel (a fragment shader raymarching every
+        // ball), so an uncapped DPR of 3 (typical on phones) means 9x the
+        // shading work of DPR 1. [1, 2] still looks sharp on a small
+        // mobile screen while cutting that back substantially.
+        dpr={[1, 2] as Dpr}
+        // MSAA is redundant here — PuyoRaymarch already anti-aliases its
+        // own silhouette analytically (see the alpha/edgeDist logic in
+        // that file) — and mobile GPUs pay real bandwidth for it. Only
+        // downside: the grid Line meshes lose MSAA's smoothing too, so
+        // they may look very slightly more jagged.
+        gl={{ antialias: false }}
       >
         {ENABLE_RAYMARCH_PUYOS ? (
           <PuyoRaymarch
