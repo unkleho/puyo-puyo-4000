@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import React from 'react';
 import { Dialog } from './Dialog';
 import { PuyoPuyoLogo } from './PuyoPuyoLogo';
@@ -13,6 +14,17 @@ export const InfoDialog: React.FC<Props> = ({ isActive, onClose }) => {
       <div className="space-y-4 text-stone-300">
         <PuyoPuyoLogo fontSize="1.4em" />
         <p className=""></p>
+
+        <p>
+          <Link href="/">
+            <a onClick={onClose}>Game</a>
+          </Link>{' '}
+          |{' '}
+          <Link href="/board-editor">
+            <a onClick={onClose}>Board editor</a>
+          </Link>
+        </p>
+
         <p>
           Experimental open source Puyo Puyo clone by{' '}
           <a href="https://twitter.com/unkleho">Unkle Ho</a>.

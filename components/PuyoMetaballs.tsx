@@ -56,6 +56,26 @@ const SPRING_MAX_DELTA_SECONDS = 1 / 30;
 // speed, so it actually takes proportionally longer to arrive.
 const MAX_FALL_SPEED_CELLS_PER_SECOND = 6;
 
+// How long a fall of this many rows takes to visually settle — the coast
+// phase at MAX_FALL_SPEED_CELLS_PER_SECOND (only kicks in once a fall is
+// far enough to hit that cap; see the comment above) plus the underdamped
+// spring's own settle/bounce time, which is roughly independent of distance
+// (see MAX_FALL_SPEED_CELLS_PER_SECOND's comment). Exported so callers that
+// trigger a big, instant grid-level drop (e.g. BoardEditor's Play button,
+// which calls collapsePuyos directly rather than a real game's per-tick
+// gravity) can wait for the fall to actually finish landing before checking
+// for a new clear, instead of a fixed timeout sized for a real game's
+// typically much shorter drops.
+export function getFallAnimationDurationSeconds(rows: number) {
+  const rampDistanceCells =
+    MAX_FALL_SPEED_CELLS_PER_SECOND / SPRING_ANGULAR_FREQUENCY;
+  const coastSeconds =
+    Math.max(0, rows - rampDistanceCells) / MAX_FALL_SPEED_CELLS_PER_SECOND;
+  const settleSeconds = 4 / (SPRING_DAMPING_RATIO * SPRING_ANGULAR_FREQUENCY);
+
+  return coastSeconds + settleSeconds;
+}
+
 // Margin (in cells) added around a group's bounding box so blobs have room
 // to bulge without hitting the field's edge.
 const MARGIN_CELLS = 1.2;

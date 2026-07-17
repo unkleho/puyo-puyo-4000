@@ -40,7 +40,7 @@ const GRID_LINE_OPACITY = 0.15;
 // same pattern drei's own Line.js uses) rather than the JSX `<line>` tag —
 // that tag name collides with React's own SVGProps typings for the DOM
 // `<line>` element, which rejects a `geometry` prop.
-const GridLine: React.FC<{
+export const GridLine: React.FC<{
   start: [number, number];
   end: [number, number];
   color: string;
