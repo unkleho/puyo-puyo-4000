@@ -4,6 +4,7 @@ import React from 'react';
 import * as THREE from 'three';
 import { Grid, Puyos, PuyoColour, puyoColours } from '../store/store';
 import { getPuyoGroups, getPuyoPosition, PuyoGroup } from '../shared/grid';
+import { ENABLE_PUYO_WOBBLE } from '../shared/config';
 
 // ---------------------------------------------------------------------------
 // Alternative to PuyoMetaballs: instead of marching-cubes geometry, this
@@ -129,11 +130,74 @@ const COLLAPSE_ROW_STAGGER_SECONDS = 0.05;
 // but not zero, so this stays subtle rather than pronounced.
 const SPRING_DAMPING_RATIO_COLLAPSE_BOUNCE = 0.6;
 
+// Idle wobble (see ENABLE_PUYO_WOBBLE) — applied only to the final render
+// position, never fed back into the spring's own tracked position (see
+// where it's used in useFrame below), so it can't affect connectivity
+// logic, rotation-arc pivots, or the sink animation's captured positions,
+// only what actually gets drawn. Base amplitude is a fraction of cellSize,
+// kept well under the smooth-min blend radius (SMOOTH_MIN_RATIO × radius)
+// so it can't meaningfully perturb merge connectivity between
+// same-coloured neighbours — unlike the falling piece's old bounce, this
+// runs continuously for every ball, so the amplitude has to stay
+// genuinely tiny rather than just brief.
+const WOBBLE_AMPLITUDE_RATIO = 0.01;
+const WOBBLE_SPEED = 1.5; // rad/s, before per-ball variation below
+
+// Each ball gets its own phase and speed for X and Y independently (see
+// createWobbleParams) rather than sharing one oscillator with only a
+// phase offset — a shared oscillator has every ball tracing the exact
+// same loop shape, just started at a different point, which reads as
+// synchronised/mechanical up close. ±this fraction randomises speed (and,
+// separately, amplitude) per ball so each one's motion is genuinely its
+// own rather than a phase-shifted copy of everyone else's.
+const WOBBLE_SPEED_VARIATION = 0.3;
+const WOBBLE_AMPLITUDE_VARIATION = 0.3;
+
 // Matches PuyoMetaballs' easeInCubic — keeps accelerating right up to t=1
 // instead of flattening out, so a shrinking ball doesn't linger at any one
 // size for many frames (particularly near-zero, sub-voxel-equivalent size).
 function easeInCubic(t: number) {
   return t * t * t;
+}
+
+// Stable per-(id, purpose) pseudo-random value in [0, 1) — salting by
+// `purpose` lets one id derive several independent-looking numbers (a
+// phase, a speed, an amplitude, ...) without them all moving in lockstep
+// off a single shared hash.
+function hashToUnit(id: string, purpose: string): number {
+  const value = `${id}:${purpose}`;
+  let hash = 0;
+
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+
+  return (Math.abs(hash) % 10000) / 10000;
+}
+
+type WobbleParams = {
+  phaseX: number;
+  phaseY: number;
+  speedX: number;
+  speedY: number;
+  amplitudeMultiplier: number;
+};
+
+// Computed once per id (cached in wobbleParamsRef below, not re-hashed
+// every frame) — not seeded by array index, which can shift as other
+// balls enter/leave visibility, so a given ball's wobble stays consistent
+// across frames regardless of what else is on the board.
+function createWobbleParams(id: string): WobbleParams {
+  const randomInRange = (purpose: string, variation: number) =>
+    1 + (hashToUnit(id, purpose) * 2 - 1) * variation;
+
+  return {
+    phaseX: hashToUnit(id, 'phaseX') * Math.PI * 2,
+    phaseY: hashToUnit(id, 'phaseY') * Math.PI * 2,
+    speedX: WOBBLE_SPEED * randomInRange('speedX', WOBBLE_SPEED_VARIATION),
+    speedY: WOBBLE_SPEED * randomInRange('speedY', WOBBLE_SPEED_VARIATION),
+    amplitudeMultiplier: randomInRange('amplitude', WOBBLE_AMPLITUDE_VARIATION),
+  };
 }
 
 type PositionMap = Map<string, [number, number]>;
@@ -185,7 +249,14 @@ const vertexShader = /* glsl */ `
 const fragmentShader = /* glsl */ `
   #define MAX_BALLS ${MAX_BALLS}
   #define NUM_COLOURS 5
-  #define MAX_STEPS 40
+  // Each step re-evaluates sceneSDF (cost scales with uBallCount), so this
+  // is one of the biggest per-pixel cost levers as the board fills up. Cut
+  // from 40 — safe to lower since the anti-aliased silhouette is derived
+  // separately (a single SDF evaluation at z = 0, see edgeDist below), not
+  // from how well this loop converges; an under-converged shading position
+  // right at a tricky merge neck only costs a little normal/highlight
+  // accuracy there, never a visible artifact at the silhouette itself.
+  #define MAX_STEPS 26
 
   varying vec2 vXY;
 
@@ -227,27 +298,37 @@ const fragmentShader = /* glsl */ `
   // belongs to. Same-colour balls blend smoothly into one another; the
   // result across colours is a hard min, so different colours never blend —
   // only whichever is actually closer is drawn.
+  //
+  // Loops every ball exactly once (not once per colour): each ball only
+  // ever needs to update its own colour's running smooth-min, so bucketing
+  // by colour in a single pass does the same work in 1/NUM_COLOURS the
+  // iterations of nesting "for each colour, scan every ball and skip the
+  // ones that don't match" — this function is the dominant per-pixel cost
+  // (called ~40+ times per shaded pixel between raymarching and the
+  // normal), so this matters most exactly when the board — and uBallCount
+  // — is fullest.
   float sceneSDF(vec3 p, out int hitColour) {
+    float colourDist[NUM_COLOURS];
+
+    for (int c = 0; c < NUM_COLOURS; c++) {
+      colourDist[c] = 1.0e4;
+    }
+
+    for (int i = 0; i < MAX_BALLS; i++) {
+      if (i >= uBallCount) break;
+
+      int c = int(uBallColour[i]);
+      float radius = uBallBaseRadius * uBallRadiusScale[i];
+      float d = length(p - vec3(uBallPos[i], 0.0)) - radius;
+      colourDist[c] = smin(colourDist[c], d, uSmoothK);
+    }
+
     float best = 1.0e4;
     int bestColour = -1;
 
     for (int c = 0; c < NUM_COLOURS; c++) {
-      float colourDist = 1.0e4;
-      bool any = false;
-
-      for (int i = 0; i < MAX_BALLS; i++) {
-        if (i >= uBallCount) break;
-
-        if (int(uBallColour[i]) == c) {
-          float radius = uBallBaseRadius * uBallRadiusScale[i];
-          float d = length(p - vec3(uBallPos[i], 0.0)) - radius;
-          colourDist = smin(colourDist, d, uSmoothK);
-          any = true;
-        }
-      }
-
-      if (any && colourDist < best) {
-        best = colourDist;
+      if (colourDist[c] < best) {
+        best = colourDist[c];
         bestColour = c;
       }
     }
@@ -277,11 +358,15 @@ const fragmentShader = /* glsl */ `
     // (looping every colour × every ball, every march step) for the vast
     // majority of pixels. The margin is a few world units wider than the
     // blend radius alone so it doesn't clip the anti-aliased edge below.
-    float nearest = 1.0e4;
+    // Runs for every pixel regardless of ball count, so it stays on squared
+    // distances (one sqrt at the end, not up to MAX_BALLS of them).
+    float nearestSq = 1.0e8;
     for (int i = 0; i < MAX_BALLS; i++) {
       if (i >= uBallCount) break;
-      nearest = min(nearest, length(vXY - uBallPos[i]));
+      vec2 diff = vXY - uBallPos[i];
+      nearestSq = min(nearestSq, dot(diff, diff));
     }
+    float nearest = sqrt(nearestSq);
     if (nearest - uBallBaseRadius > uSmoothK + 3.0) {
       discard;
     }
@@ -483,6 +568,10 @@ export const PuyoRaymarch: React.FC<Props> = ({
   );
   const ballColoursRef = React.useRef(new Array(MAX_BALLS).fill(0));
   const ballRadiusScalesRef = React.useRef(new Array(MAX_BALLS).fill(1));
+  const wobbleTimeRef = React.useRef(0);
+  // Cached so each id's phase/speed/amplitude is only hashed once, not
+  // re-derived from scratch every frame for every ball.
+  const wobbleParamsRef = React.useRef<Map<string, WobbleParams>>(new Map());
   const lightPosRef = React.useRef(new THREE.Vector3());
   const fillLightPosRef = React.useRef(new THREE.Vector3());
   const exitingGroupsRef = React.useRef<ExitingGroup[]>([]);
@@ -727,6 +816,8 @@ export const PuyoRaymarch: React.FC<Props> = ({
       return;
     }
 
+    wobbleTimeRef.current += delta;
+
     const dt = Math.min(delta, SPRING_MAX_DELTA_SECONDS);
     const springStiffness = SPRING_ANGULAR_FREQUENCY * SPRING_ANGULAR_FREQUENCY;
     const springDamping = 2 * SPRING_DAMPING_RATIO * SPRING_ANGULAR_FREQUENCY;
@@ -867,7 +958,32 @@ export const PuyoRaymarch: React.FC<Props> = ({
         }
       }
 
-      ballPositions[count].set(x, y);
+      let renderX = x;
+      let renderY = y;
+
+      // Cosmetic only — added after the spring/positions.set above, so it
+      // never feeds back into the tracked position other logic (rotation
+      // arc, collapse/bounce settle checks, sink capture) relies on.
+      if (ENABLE_PUYO_WOBBLE) {
+        let wobble = wobbleParamsRef.current.get(id);
+
+        if (!wobble) {
+          wobble = createWobbleParams(id);
+          wobbleParamsRef.current.set(id, wobble);
+        }
+
+        const amplitude =
+          cellSize * WOBBLE_AMPLITUDE_RATIO * wobble.amplitudeMultiplier;
+
+        renderX +=
+          Math.cos(wobbleTimeRef.current * wobble.speedX + wobble.phaseX) *
+          amplitude;
+        renderY +=
+          Math.sin(wobbleTimeRef.current * wobble.speedY + wobble.phaseY) *
+          amplitude;
+      }
+
+      ballPositions[count].set(renderX, renderY);
       ballColours[count] = COLOUR_INDEX[puyos[id].colour];
       ballRadiusScales[count] = 1;
       count += 1;
@@ -934,6 +1050,12 @@ export const PuyoRaymarch: React.FC<Props> = ({
     collapseBouncingRef.current.forEach((id) => {
       if (!liveIds.has(id)) {
         collapseBouncingRef.current.delete(id);
+      }
+    });
+
+    wobbleParamsRef.current.forEach((_, id) => {
+      if (!liveIds.has(id)) {
+        wobbleParamsRef.current.delete(id);
       }
     });
 
