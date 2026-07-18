@@ -56,9 +56,18 @@ export function getScore(chainCount: number, puyoChains: PuyoColour[][]) {
   // --------------------------------------------------------------------------
   // Group Bonus
   // --------------------------------------------------------------------------
+  // groupBonusTable only defines entries up to maxGroupSize — a bigger
+  // merge (entirely possible, nothing caps how large a same-colour group
+  // can get) would otherwise look up `undefined` and poison the sum to
+  // NaN. Capped the same way chainPower caps chainCount above.
+  const groupBonusSizes = Object.keys(groupBonusTable).reverse();
+  const maxGroupSize = parseInt(groupBonusSizes[0]);
+
   const groupBonus = puyoChains.reduce((total, chain) => {
+    const groupSize = chain.length < maxGroupSize ? chain.length : maxGroupSize;
+
     // @ts-ignore
-    return total + groupBonusTable[chain.length];
+    return total + groupBonusTable[groupSize];
   }, 0);
 
   return getPuyoScore(totalCleared, chainPower, colourBonus, groupBonus);

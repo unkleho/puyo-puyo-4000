@@ -275,6 +275,20 @@ export const useStore = create<Store>((set) => ({
     }),
   movePuyos: (direction, type = 'user') => {
     set((state) => {
+      // userPuyoIds keeps pointing at the piece that just landed all the
+      // way through landed-puyos/collapse-puyos/clear-puyos, right up
+      // until add-puyos reassigns it to the next piece — without this
+      // guard, a move/rotate pressed during that resolve window repositions
+      // the already-landed puyos instead of no-oping, which can break up a
+      // group that was about to clear (it only clears later, once some
+      // other collapse happens to bring it back together).
+      if (
+        state.gameState !== 'drop-puyos' &&
+        state.gameState !== 'landing-puyos'
+      ) {
+        return state;
+      }
+
       const grid = cloneGrid(state.grid);
       const [puyo1Id, puyo2Id] = state.userPuyoIds;
       const [puyo1Column, puyo1Row] = getPuyoPosition(state.grid, puyo1Id);
@@ -401,6 +415,17 @@ export const useStore = create<Store>((set) => ({
   },
   rotatePuyos: (direction = 'cw') => {
     set((state) => {
+      // Same guard as movePuyos above — userPuyoIds is stale (still the
+      // just-landed piece) during the landed/collapse/clear resolve
+      // window, so a rotate here would spin the wrong puyos instead of
+      // no-oping.
+      if (
+        state.gameState !== 'drop-puyos' &&
+        state.gameState !== 'landing-puyos'
+      ) {
+        return state;
+      }
+
       // See PuyoRotateDirection above for why 'ccw' is three 'cw' steps
       // rather than its own mirrored implementation.
       const steps = direction === 'ccw' ? 3 : 1;

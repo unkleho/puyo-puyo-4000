@@ -60,8 +60,11 @@ export function countEmptyCellsBelow(
     }
   });
 
-  // Get lowest count (user puyo that is closest to the another puyo below)
-  counts.sort();
+  // Get lowest count (user puyo that is closest to the another puyo below).
+  // Needs a numeric comparator — Array.prototype.sort() defaults to string
+  // order, which picks the wrong "minimum" once counts cross a digit
+  // boundary (e.g. [2, 10] sorts as [10, 2]).
+  counts.sort((a, b) => a - b);
 
   // console.log(counts);
 
