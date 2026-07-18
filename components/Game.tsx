@@ -7,6 +7,7 @@ import { Audio } from './Audio';
 import { ControlButtons } from './ControlButtons';
 import { IconButton } from './IconButton';
 import {
+  CLEAR_TO_COLLAPSE_PAUSE_SECONDS,
   getFallAnimationDurationSeconds,
   getSinkAnimationDurationSeconds,
 } from './PuyoMetaballs';
@@ -182,11 +183,13 @@ export const Game = () => {
       // exit animation to wait for).
       const delay =
         puyoIdsToClear.length > 0
-          ? Math.max(
+          ? (Math.max(
               ...puyoIdsToClear.map((group) =>
                 getSinkAnimationDurationSeconds(group.length),
               ),
-            ) * 1000
+            ) +
+              CLEAR_TO_COLLAPSE_PAUSE_SECONDS) *
+            1000
           : COLLAPSE_PUYOS_TIMEOUT;
 
       window.setTimeout(() => {

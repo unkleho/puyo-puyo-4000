@@ -9,6 +9,7 @@ import { cloneGrid, collapsePuyos, getMaxFallRows } from '../shared/grid';
 import { useAudioStore } from '../store/audioStore';
 import { Grid, Puyos, PuyoColour, puyoColours, useStore } from '../store/store';
 import {
+  CLEAR_TO_COLLAPSE_PAUSE_SECONDS,
   getFallAnimationDurationSeconds,
   getSinkAnimationDurationSeconds,
 } from './PuyoMetaballs';
@@ -220,7 +221,7 @@ export const BoardEditor: React.FC = () => {
           getSinkAnimationDurationSeconds(group.length),
         ),
       );
-      await delay(sinkSeconds * 1000);
+      await delay((sinkSeconds + CLEAR_TO_COLLAPSE_PAUSE_SECONDS) * 1000);
 
       const gridBeforeFall = currentGrid;
       currentGrid = collapsePuyos(currentGrid);

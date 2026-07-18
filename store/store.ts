@@ -99,8 +99,10 @@ export type Store = {
   score: number;
   /** Temporary chain count between clear and collapse states, used to work out chain power & scoring */
   chainCount: number;
-  /** Running total of chains during game */
+  /** Running total of individual chain links cleared during the game (a single move that chains 4 links deep adds 4 here) — used for the on-screen "Chns" stat */
   totalChainCount: number;
+  /** Running total of chain *reactions* triggered during the game — a move that chains 4 links deep still only adds 1 here. Drives level/tickSpeed so a single big combo doesn't ramp up speed as fast as the same number of separate one-link moves would. */
+  totalChainSets: number;
   level: number;
   screen: {
     width: number;
@@ -156,6 +158,7 @@ export const useStore = create<Store>((set) => ({
   tempPuyoChains: [],
   chainCount: 0,
   totalChainCount: 0,
+  totalChainSets: 0,
   level: 0,
   screen: {
     width: 0,
@@ -206,6 +209,7 @@ export const useStore = create<Store>((set) => ({
         level: 1,
         chainCount: 0,
         totalChainCount: 0,
+        totalChainSets: 0,
         tickSpeed: INITIAL_TICK_SPEED,
       };
     }),
@@ -562,6 +566,11 @@ export const useStore = create<Store>((set) => ({
 
       // If there are puyos cleared, collapse puyos and keep track of chains
       if (totalCount) {
+        // chainCount is 0 only on the first link of a chain reaction —
+        // totalChainSets counts reactions, not links, so a 4-chain from one
+        // move still only adds 1 here (see its doc comment above).
+        const isFirstLinkOfChain = state.chainCount === 0;
+
         return {
           grid,
           gameState: 'collapse-puyos',
@@ -569,12 +578,15 @@ export const useStore = create<Store>((set) => ({
           score: state.score + getScore(state.chainCount + 1, puyoChains),
           chainCount: state.chainCount + 1,
           totalChainCount: state.totalChainCount + 1,
+          totalChainSets: isFirstLinkOfChain
+            ? state.totalChainSets + 1
+            : state.totalChainSets,
           tickSpeed: state.tickSpeed,
           level: state.level,
         };
       }
 
-      const [level, tickSpeed] = getLevelAndTickSpeed(state.totalChainCount);
+      const [level, tickSpeed] = getLevelAndTickSpeed(state.totalChainSets);
 
       // If there are no more puyos cleared, add up total score and continue
       // game and add puyos
@@ -585,6 +597,7 @@ export const useStore = create<Store>((set) => ({
         score: state.score,
         chainCount: 0,
         totalChainCount: state.totalChainCount,
+        totalChainSets: state.totalChainSets,
         tickSpeed,
         level,
       };
@@ -690,20 +703,22 @@ function rotatePuyosOnce(
 }
 
 /**
- * Get level and tick speed (ms) based on totalChainCount
+ * Get level and tick speed (ms) based on totalChainSets — chain *reactions*
+ * triggered, not individual links, so one big combo doesn't ramp this up as
+ * fast as the same number of separate one-link moves would.
  */
-function getLevelAndTickSpeed(totalChainCount: number): [number, number] {
-  if (totalChainCount >= 30) {
+function getLevelAndTickSpeed(totalChainSets: number): [number, number] {
+  if (totalChainSets >= 30) {
     return [7, 100];
-  } else if (totalChainCount >= 25) {
+  } else if (totalChainSets >= 25) {
     return [6, 150];
-  } else if (totalChainCount >= 20) {
+  } else if (totalChainSets >= 20) {
     return [5, 200];
-  } else if (totalChainCount >= 15) {
+  } else if (totalChainSets >= 15) {
     return [4, 300];
-  } else if (totalChainCount >= 10) {
+  } else if (totalChainSets >= 10) {
     return [3, 400];
-  } else if (totalChainCount >= 5) {
+  } else if (totalChainSets >= 5) {
     return [2, 500];
   }
 

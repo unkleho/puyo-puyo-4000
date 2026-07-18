@@ -153,6 +153,13 @@ export function getSinkAnimationDurationSeconds(groupSize: number) {
   return SINK_DURATION_SECONDS + (groupSize - 1) * STAGGER_SECONDS;
 }
 
+// Extra beat after a cleared group finishes sinking away before the board
+// drops into the gap — without this, the drop starts the instant the sink
+// animation ends, which in a chain reads as barely any pause between one
+// group popping and the next collapse starting. Exported so both the real
+// game (Game.tsx) and the board editor's Play-through use the same pacing.
+export const CLEAR_TO_COLLAPSE_PAUSE_SECONDS = 0.25;
+
 // ---------------------------------------------------------------------------
 
 type Props = {
