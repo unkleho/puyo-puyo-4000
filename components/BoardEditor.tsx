@@ -5,7 +5,6 @@ import { GridLine } from './ThreeBoard';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
 import { PuyoPuyoLogo } from './PuyoPuyoLogo';
-import useDeviceDetect from '../hooks/use-device-detect';
 import { ENABLE_METABALL_PUYOS, ENABLE_RAYMARCH_PUYOS } from '../shared/config';
 import { clearPuyos } from '../shared/clear-puyos';
 import { cloneGrid, collapsePuyos, getPuyoPosition } from '../shared/grid';
@@ -95,10 +94,6 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
   const setDialogOpen = useStore((store) => store.setDialogOpen);
   const volume = useAudioStore((store) => store.volume);
   const setVolume = useAudioStore((store) => store.setVolume);
-  // ControlButtons hits this same issue — plain onClick doesn't fire
-  // reliably on a mobile touchscreen here, so taps are handled via
-  // onTouchStart instead, guarded so desktop doesn't double-fire.
-  const { isMobile } = useDeviceDetect();
 
   // Avoids an SSR/client markup mismatch on first paint — same guard
   // Game.tsx uses around its own volume icon.
@@ -283,7 +278,7 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
               title={colour}
               disabled={isPlaying}
               className={[
-                'h-10 w-10 rounded-full border-2',
+                'h-8 w-8 rounded-full border-2 sm:h-10 sm:w-10',
                 SWATCH_CLASSES[colour],
                 tool === colour ? 'border-white' : 'border-transparent',
               ].join(' ')}
@@ -296,7 +291,7 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
             title="Erase"
             disabled={isPlaying}
             className={[
-              'flex h-10 w-10 items-center justify-center rounded-full border-2 bg-stone-800',
+              'flex h-8 w-8 items-center justify-center rounded-full border-2 bg-stone-800 sm:h-10 sm:w-10',
               tool === 'erase' ? 'border-white' : 'border-transparent',
             ].join(' ')}
             onClick={() => setTool('erase')}
@@ -381,15 +376,8 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
                   key={`${column}-${row}`}
                   type="button"
                   disabled={isPlaying}
-                  className="h-full w-full border-0 bg-transparent p-0 hover:bg-white/5"
-                  onClick={() => {
-                    if (!isMobile) {
-                      handleCellClick(column, row);
-                    }
-                  }}
-                  onTouchStart={() => {
-                    handleCellClick(column, row);
-                  }}
+                  className="h-full w-full touch-manipulation border-0 bg-transparent p-0 hover:bg-white/5"
+                  onPointerDown={() => handleCellClick(column, row)}
                 />
               );
             })}
