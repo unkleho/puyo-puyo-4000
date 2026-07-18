@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useKeyPress } from '../hooks/use-key-press';
 import { useAudioStore } from '../store/audioStore';
-import { useStore } from '../store/store';
+import { GameState, useStore } from '../store/store';
 import { Alert } from './Alert';
 import { Audio } from './Audio';
 import { ControlButtons } from './ControlButtons';
@@ -66,8 +66,16 @@ export const Game = () => {
   const landedPuyos = useStore((store) => store.landedPuyos);
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
+  const landingResetCount = useStore((store) => store.landingResetCount);
 
-  const gameState = isDialogOpen ? localGameState === 'paused' : localGameState;
+  // While the dialog is open, gameplay should read as paused — this used to
+  // compute `localGameState === 'paused'`, a boolean equality check instead
+  // of the string 'paused', so gameState briefly became `true`/`false`
+  // whenever the dialog opened. Since every comparison elsewhere expects a
+  // GameState string (e.g. `gameState !== 'paused'`), that boolean never
+  // matched 'paused', so opening the dialog didn't actually block
+  // move/rotate input like it was clearly meant to.
+  const gameState: GameState = isDialogOpen ? 'paused' : localGameState;
 
   // --------------------------------------------------------------------------
   // SSR check
@@ -121,26 +129,39 @@ export const Game = () => {
     }
   });
 
+  useKeyPress('p', [gameState], () => {
+    if (gameState !== 'idle' && gameState !== 'lose') {
+      togglePauseGame();
+    }
+  });
+
   const [isSSR, setIsSSR] = useState(true);
 
   // --------------------------------------------------------------------------
   // Game state effects
   // --------------------------------------------------------------------------
+  const prevGameStateRef = useRef<GameState | null>(null);
+
   useEffect(() => {
     let interval: number = 0;
 
     if (gameState === 'start') {
       dropPuyos();
     } else if (gameState === 'drop-puyos') {
+      if (prevGameStateRef.current === 'landing-puyos') {
+        // Resuming after being freed during the landing window — skip
+        // setInterval's own first-fire delay (up to a full tickSpeed), which
+        // on top of the landing timeout made the piece feel stuck before it
+        // actually dropped again. A fresh spawn (from 'start'/'add-puyos')
+        // still waits for the first tick as before, keeping that beat.
+        movePuyos('down', 'board');
+      }
+
       interval = window.setInterval(() => {
         movePuyos('down', 'board');
       }, tickSpeed);
     } else if (gameState === 'paused') {
       window.clearInterval(interval);
-    } else if (gameState === 'landing-puyos') {
-      window.setTimeout(() => {
-        landingPuyos();
-      }, LANDING_PUYOS_TIMEOUT);
     } else if (gameState === 'landed-puyos') {
       window.clearInterval(interval);
       landedPuyos();
@@ -175,6 +196,8 @@ export const Game = () => {
       loseGame();
     }
 
+    prevGameStateRef.current = gameState;
+
     return () => {
       window.clearInterval(interval);
     };
@@ -184,13 +207,37 @@ export const Game = () => {
     tickSpeed,
     movePuyos,
     addPuyos,
-    landingPuyos,
     landedPuyos,
     clearPuyos,
     collapsePuyos,
     loseGame,
     dropPuyos,
   ]);
+
+  // --------------------------------------------------------------------------
+  // Landing window — separate from the effect above because it needs to
+  // renew (restart its timeout) on every move/rotate made while landing,
+  // not just on a gameState change. The reset cap itself (MAX_LANDING_RESETS)
+  // is enforced in the store — movePuyos/rotatePuyos refuse to act (and so
+  // leave landingResetCount/grid unchanged) once it's reached, so this
+  // effect simply stops being retriggered at that point and the
+  // already-pending timeout below is left to fire on its own.
+  // --------------------------------------------------------------------------
+  const landingTimeoutRef = useRef<number>();
+
+  useEffect(() => {
+    if (gameState !== 'landing-puyos') {
+      // Leaving the landing window for any reason (locked in, paused,
+      // lost, etc.) — cancel any pending check.
+      window.clearTimeout(landingTimeoutRef.current);
+      return;
+    }
+
+    window.clearTimeout(landingTimeoutRef.current);
+    landingTimeoutRef.current = window.setTimeout(() => {
+      landingPuyos();
+    }, LANDING_PUYOS_TIMEOUT);
+  }, [gameState, landingResetCount, landingPuyos]);
 
   return (
     <div className="game h-full gap-4">

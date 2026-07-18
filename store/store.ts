@@ -74,6 +74,10 @@ const clearGrid = [
 ];
 
 const INITIAL_TICK_SPEED = 600;
+// How many times a move/rotate can renew the landing window before the
+// piece is forced to lock regardless — without a cap, mashing rotate would
+// let a piece sit in landing-puyos forever.
+export const MAX_LANDING_RESETS = 8;
 
 export type Store = {
   gameState: GameState;
@@ -106,6 +110,8 @@ export type Store = {
   puyoMoveType: PuyoMoveType | null;
   puyoMoveDirection: PuyoMoveDirection | null;
   puyoRotation: PuyoRotation;
+  /** How many times the current piece's landing window has been renewed by a move/rotate — capped at MAX_LANDING_RESETS, reset to 0 whenever it freshly enters landing-puyos. */
+  landingResetCount: number;
   isDialogOpen: boolean;
   setScreen: (width: number, height: number) => void;
   setPadding: (padding: number) => void;
@@ -156,6 +162,7 @@ export const useStore = create<Store>((set) => ({
   puyoMoveType: null,
   puyoMoveDirection: null,
   puyoRotation: 'up',
+  landingResetCount: 0,
   isDialogOpen: false,
   setScreen: (width, height) =>
     set(() => {
@@ -289,12 +296,25 @@ export const useStore = create<Store>((set) => ({
         return state;
       }
 
+      // Resets used up — refuse further adjustments so the piece is
+      // actually committed, instead of moves quietly renewing the landing
+      // window (and generally still moving the piece) forever.
+      if (
+        state.gameState === 'landing-puyos' &&
+        state.landingResetCount >= MAX_LANDING_RESETS
+      ) {
+        return state;
+      }
+
       const grid = cloneGrid(state.grid);
       const [puyo1Id, puyo2Id] = state.userPuyoIds;
       const [puyo1Column, puyo1Row] = getPuyoPosition(state.grid, puyo1Id);
       const [puyo2Column, puyo2Row] = getPuyoPosition(state.grid, puyo2Id);
 
       let gameState = state.gameState;
+      // Freshly touching down doesn't itself consume a reset — resets are
+      // for adjustments made *during* the window that follows.
+      let justStartedLanding = false;
 
       if (
         typeof puyo1Row === 'number' &&
@@ -327,6 +347,7 @@ export const useStore = create<Store>((set) => ({
               grid[puyo1Row + moveDownCount][puyo1Column] = puyo1Id;
             }
           } else {
+            justStartedLanding = state.gameState !== 'landing-puyos';
             gameState = 'landing-puyos';
           }
         } else if (direction === 'left') {
@@ -404,11 +425,18 @@ export const useStore = create<Store>((set) => ({
         }
       }
 
+      const landingResetCount = justStartedLanding
+        ? 0
+        : gameState === 'landing-puyos'
+        ? state.landingResetCount + 1
+        : state.landingResetCount;
+
       return {
         grid,
         gameState,
         puyoMoveDirection: direction,
         puyoMoveType: type,
+        landingResetCount,
         // puyoMoveType: type === 'user' ? 'down' : null,
       };
     });
@@ -422,6 +450,14 @@ export const useStore = create<Store>((set) => ({
       if (
         state.gameState !== 'drop-puyos' &&
         state.gameState !== 'landing-puyos'
+      ) {
+        return state;
+      }
+
+      // Resets used up — see the matching guard in movePuyos above.
+      if (
+        state.gameState === 'landing-puyos' &&
+        state.landingResetCount >= MAX_LANDING_RESETS
       ) {
         return state;
       }
@@ -443,6 +479,10 @@ export const useStore = create<Store>((set) => ({
         puyoMoveType: 'user',
         puyoMoveDirection: 'rotate',
         puyoRotation,
+        landingResetCount:
+          state.gameState === 'landing-puyos'
+            ? state.landingResetCount + 1
+            : state.landingResetCount,
       };
     });
   },
