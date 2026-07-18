@@ -6,7 +6,10 @@ import { Alert } from './Alert';
 import { Audio } from './Audio';
 import { ControlButtons } from './ControlButtons';
 import { IconButton } from './IconButton';
-import { getSinkAnimationDurationSeconds } from './PuyoMetaballs';
+import {
+  getFallAnimationDurationSeconds,
+  getSinkAnimationDurationSeconds,
+} from './PuyoMetaballs';
 import { PuyoPuyoLogo } from './PuyoPuyoLogo';
 import { Score } from './Score';
 import { ThreeBoard } from './ThreeBoard';
@@ -67,6 +70,9 @@ export const Game = () => {
   const clearPuyos = useStore((store) => store.clearPuyos);
   const collapsePuyos = useStore((store) => store.collapsePuyos);
   const landingResetCount = useStore((store) => store.landingResetCount);
+  const lastCollapseMaxFallRows = useStore(
+    (store) => store.lastCollapseMaxFallRows,
+  );
 
   // While the dialog is open, gameplay should read as paused — this used to
   // compute `localGameState === 'paused'`, a boolean equality check instead
@@ -187,9 +193,22 @@ export const Game = () => {
         collapsePuyos();
       }, delay);
     } else if (gameState === 'clear-puyos') {
+      // Entered either fresh off a landing (grid hasn't moved — CLEAR_PUYOS_TIMEOUT
+      // is just a dramatic pause before the about-to-clear group pops) or as a
+      // chain continuation straight after collapsePuyos() applied gravity (the
+      // puyos that just fell are still visually springing into place in
+      // PuyoMetaballs). The latter needs to wait for that specific fall to
+      // actually finish settling — proportional to how far it fell — instead of
+      // the same fixed pause, otherwise a big multi-row collapse hasn't visually
+      // landed yet by the time the next chain clear pops the following group.
+      const delay =
+        prevGameStateRef.current === 'collapse-puyos'
+          ? getFallAnimationDurationSeconds(lastCollapseMaxFallRows) * 1000
+          : CLEAR_PUYOS_TIMEOUT;
+
       window.setTimeout(() => {
         clearPuyos();
-      }, CLEAR_PUYOS_TIMEOUT);
+      }, delay);
     } else if (gameState === 'add-puyos') {
       addPuyos();
     } else if (gameState === 'lose') {
@@ -205,6 +224,7 @@ export const Game = () => {
     gameState,
     puyoIdsToClear,
     tickSpeed,
+    lastCollapseMaxFallRows,
     movePuyos,
     addPuyos,
     landedPuyos,

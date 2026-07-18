@@ -109,6 +109,29 @@ export function padEnd(array: any[], minLength: number, fillValue: any) {
 }
 
 /**
+ * Furthest any of the given puyo ids actually moved between two grids (e.g.
+ * before and after a gravity collapse) — lets a caller wait for a fall's
+ * visual settle animation (proportional to distance) to actually finish,
+ * rather than a fixed timeout sized for a typically much shorter drop.
+ */
+export function getMaxFallRows(
+  previousGrid: Grid,
+  nextGrid: Grid,
+  ids: string[],
+): number {
+  return ids.reduce((maxRows, id) => {
+    const [, previousRow] = getPuyoPosition(previousGrid, id);
+    const [, nextRow] = getPuyoPosition(nextGrid, id);
+
+    if (previousRow === null || nextRow === null) {
+      return maxRows;
+    }
+
+    return Math.max(maxRows, nextRow - previousRow);
+  }, 0);
+}
+
+/**
  * Get column and row values of puyo in grid
  * @returns [column, row]
  */

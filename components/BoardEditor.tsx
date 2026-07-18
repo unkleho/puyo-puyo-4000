@@ -5,7 +5,7 @@ import { Icon } from './Icon';
 import { IconButton } from './IconButton';
 import { PuyoPuyoLogo } from './PuyoPuyoLogo';
 import { clearPuyos } from '../shared/clear-puyos';
-import { cloneGrid, collapsePuyos, getPuyoPosition } from '../shared/grid';
+import { cloneGrid, collapsePuyos, getMaxFallRows } from '../shared/grid';
 import { useAudioStore } from '../store/audioStore';
 import { Grid, Puyos, PuyoColour, puyoColours, useStore } from '../store/store';
 import {
@@ -66,22 +66,12 @@ function delay(ms: number) {
 // A collapse here is an instant, grid-level drop (unlike the real game,
 // where a puyo has usually only fallen a row or two by the time it settles)
 // — a puyo placed high up in the editor can need to fall the whole board.
-// Measures the furthest any surviving puyo actually moved so the caller can
-// wait for that specific fall to finish landing, via
-// getFallAnimationDurationSeconds, rather than a fixed timeout that's too
-// short for a tall drop and only sized for a real game's short ones.
-function getMaxFallRows(previousGrid: Grid, nextGrid: Grid, ids: string[]) {
-  return ids.reduce((maxRows, id) => {
-    const [, previousRow] = getPuyoPosition(previousGrid, id);
-    const [, nextRow] = getPuyoPosition(nextGrid, id);
-
-    if (previousRow === null || nextRow === null) {
-      return maxRows;
-    }
-
-    return Math.max(maxRows, nextRow - previousRow);
-  }, 0);
-}
+// getMaxFallRows (shared/grid.ts) measures the furthest any surviving puyo
+// actually moved so the caller can wait for that specific fall to finish
+// landing, via getFallAnimationDurationSeconds, rather than a fixed timeout
+// that's too short for a tall drop and only sized for a real game's short
+// ones — the real game (Game.tsx/store.ts) uses the same helper for its own
+// chain collapses.
 
 export const BoardEditor: React.FC = () => {
   const setDialogOpen = useStore((store) => store.setDialogOpen);

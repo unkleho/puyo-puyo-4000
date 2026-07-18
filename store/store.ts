@@ -5,6 +5,7 @@ import {
   isGridEqual,
   cloneGrid,
   getPuyoPosition,
+  getMaxFallRows,
 } from '../shared/grid';
 import { clearPuyos } from '../shared/clear-puyos';
 import { getScore } from '../shared/score';
@@ -112,6 +113,8 @@ export type Store = {
   puyoRotation: PuyoRotation;
   /** How many times the current piece's landing window has been renewed by a move/rotate — capped at MAX_LANDING_RESETS, reset to 0 whenever it freshly enters landing-puyos. */
   landingResetCount: number;
+  /** Furthest any puyo fell during the last collapsePuyos() call — lets Game.tsx wait for that specific fall to visually finish (via getFallAnimationDurationSeconds) before checking for a chained clear, instead of a fixed timeout sized for a typically much shorter drop. */
+  lastCollapseMaxFallRows: number;
   isDialogOpen: boolean;
   setScreen: (width: number, height: number) => void;
   setPadding: (padding: number) => void;
@@ -163,6 +166,7 @@ export const useStore = create<Store>((set) => ({
   puyoMoveDirection: null,
   puyoRotation: 'up',
   landingResetCount: 0,
+  lastCollapseMaxFallRows: 0,
   isDialogOpen: false,
   setScreen: (width, height) =>
     set(() => {
@@ -533,10 +537,16 @@ export const useStore = create<Store>((set) => ({
   collapsePuyos: () =>
     set((state) => {
       const grid = collapsePuyos(state.grid);
+      const lastCollapseMaxFallRows = getMaxFallRows(
+        state.grid,
+        grid,
+        Object.keys(state.puyos),
+      );
 
       return {
         grid,
         gameState: 'clear-puyos',
+        lastCollapseMaxFallRows,
       };
     }),
   clearPuyos: () =>
