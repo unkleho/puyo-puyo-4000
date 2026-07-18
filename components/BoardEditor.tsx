@@ -1,11 +1,9 @@
-import { Canvas, Dpr } from '@react-three/fiber';
 import React from 'react';
 import { ControlButtons } from './ControlButtons';
-import { GridLine } from './ThreeBoard';
+import { ThreeBoard } from './ThreeBoard';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
 import { PuyoPuyoLogo } from './PuyoPuyoLogo';
-import { ENABLE_METABALL_PUYOS, ENABLE_RAYMARCH_PUYOS } from '../shared/config';
 import { clearPuyos } from '../shared/clear-puyos';
 import { cloneGrid, collapsePuyos, getPuyoPosition } from '../shared/grid';
 import { useAudioStore } from '../store/audioStore';
@@ -13,9 +11,7 @@ import { Grid, Puyos, PuyoColour, puyoColours, useStore } from '../store/store';
 import {
   getFallAnimationDurationSeconds,
   getSinkAnimationDurationSeconds,
-  PuyoMetaballs,
 } from './PuyoMetaballs';
-import { PuyoRaymarch } from './PuyoRaymarch';
 
 // Standalone board editor: tap a cell to place the selected colour (or
 // erase), then Play resolves the layout exactly like the real game would —
@@ -26,12 +22,17 @@ import { PuyoRaymarch } from './PuyoRaymarch';
 // they reuse the same store fields Game.tsx does, matching its behaviour
 // instead of forking a second copy.
 // Mirrors Game.tsx's own page shell — same left-logo/centre-board/right-tools
-// grid, board sized the same way as the real game's, and the same rotate/move
-// arrow buttons at the bottom — so switching between the two pages feels
-// like the same app rather than a bolted-on separate tool. The arrow buttons
-// still only affect the global game store though — there's no "active piece"
-// in the editor for them to move, so they're along for the visual ride
-// rather than wired up to anything here.
+// grid, and the same rotate/move arrow buttons at the bottom — so switching
+// between the two pages feels like the same app rather than a bolted-on
+// separate tool. The arrow buttons still only affect the global game store
+// though — there's no "active piece" in the editor for them to move, so
+// they're along for the visual ride rather than wired up to anything here.
+// The board itself is ThreeBoard (same component the real game uses) rather
+// than a second copy of its Canvas/GridLine setup — this editor keeps its
+// own width/height sizing (measured off its own container below, since its
+// surrounding chrome differs from the real game's) and just hands the
+// final pixel size to ThreeBoard, overlaying its click-catcher on top via
+// ThreeBoard's children slot.
 
 const COLUMNS = 6;
 const ROWS = 14;
@@ -40,9 +41,6 @@ const ROWS = 14;
 // would actually land/render.
 const HIDDEN_ROWS = 2;
 const VISIBLE_ROWS = ROWS - HIDDEN_ROWS;
-
-const stone700 = 'rgb(58, 54, 50)';
-const stone950 = 'rgb(23, 20, 18)';
 
 // Matches Puyo.tsx's swatch colours — that file doesn't export its map, so
 // this is a small, deliberate duplication rather than a cross-component
@@ -102,6 +100,8 @@ export const BoardEditor: React.FC = () => {
   const [tool, setTool] = React.useState<Tool>(PuyoColour.RED);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const nextIdRef = React.useRef(0);
+  const padding = useStore((store) => store.padding);
+  const screen = useStore((store) => store.screen);
 
   // The board you had right before the last Play press — lets Reset put you
   // back at the start of a chain instead of wiping it, so you can watch the
@@ -112,44 +112,22 @@ export const BoardEditor: React.FC = () => {
     puyos: Puyos;
   } | null>(null);
 
-  // Sized off the actual available box (measured directly below) rather
-  // than replicating ThreeBoard.tsx's fixed screen/padding arithmetic —
-  // that formula bakes in Game.tsx's exact chrome height, which doesn't
-  // hold once this page's own chrome differs or the viewport gets tight
-  // (this is what caused the board to overflow its container and get
-  // clipped — looking "squished" — on mobile).
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = React.useState({
-    width: 0,
-    height: 0,
-  });
-
-  React.useEffect(() => {
-    const element = containerRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    const observer = new ResizeObserver(([entry]) => {
-      setContainerSize({
-        width: entry.contentRect.width,
-        height: entry.contentRect.height,
-      });
-    });
-
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, []);
-
+  // Board size based on screen size, surrounding ui and global padding —
+  // same values and formula Game.tsx uses (this used to live inside
+  // ThreeBoard.tsx itself, but that made it impossible to reuse for a board
+  // with different surrounding chrome). pages/board-editor.tsx keeps
+  // store.screen/store.padding updated the same way pages/index.tsx does
+  // for the game page — ThreeBoard just renders at whatever width/height
+  // it's given.
   const boardPadding = 10;
-  const baseWidthOnHeight = containerSize.height < containerSize.width * 2;
-  const width = baseWidthOnHeight
-    ? containerSize.height / 2
-    : containerSize.width;
-  const height = width * 2 - boardPadding;
-  const cellSize = (width - boardPadding) / 6;
+  const widthAdjust = padding + 48 + 16 + 16 + 48 + padding;
+  const heightAdjust = padding + 128 + 16 + padding;
+  const baseWidthOnHeight =
+    screen.height - heightAdjust < (screen.width - widthAdjust) * 2;
+  const boardWidth = baseWidthOnHeight
+    ? (screen.height - heightAdjust) / 2
+    : screen.width - widthAdjust;
+  const boardHeight = boardWidth * 2 - boardPadding;
 
   const handleCellClick = (column: number, row: number) => {
     if (isPlaying) {
@@ -322,68 +300,18 @@ export const BoardEditor: React.FC = () => {
         </div>
       </div>
 
-      <div
-        ref={containerRef}
-        className="relative flex h-full justify-center overflow-hidden"
-      >
-        <div
-          className="board relative mt-auto overflow-hidden border border-stone-700"
-          style={{ width, height, backgroundColor: stone950 }}
+      <div className="relative flex h-full justify-center overflow-hidden">
+        <ThreeBoard
+          grid={grid}
+          puyos={puyos}
+          userPuyoIds={['none-1', 'none-2']}
+          width={boardWidth}
+          height={boardHeight}
+          className="mt-auto overflow-hidden"
         >
-          <Canvas
-            orthographic={true}
-            camera={{ zoom: 1, position: [0, 0, 100] }}
-            dpr={[1, 2] as Dpr}
-            gl={{ antialias: false }}
-          >
-            {ENABLE_RAYMARCH_PUYOS ? (
-              <PuyoRaymarch
-                grid={grid}
-                puyos={puyos}
-                cellSize={cellSize}
-                userPuyoIds={['none-1', 'none-2']}
-              />
-            ) : ENABLE_METABALL_PUYOS ? (
-              <PuyoMetaballs
-                grid={grid}
-                puyos={puyos}
-                cellSize={cellSize}
-                userPuyoIds={['none-1', 'none-2']}
-              />
-            ) : null}
-
-            {[...new Array(11)].map((_, i) => {
-              const y = i * cellSize - cellSize * 5;
-              return (
-                <GridLine
-                  start={[-3 * cellSize, y]}
-                  end={[3 * cellSize, y]}
-                  color={stone700}
-                  key={i}
-                />
-              );
-            })}
-
-            {[...new Array(5)].map((_, i) => {
-              const x = i * cellSize - cellSize * 2;
-              return (
-                <GridLine
-                  start={[x, -6 * cellSize]}
-                  end={[x, 6 * cellSize]}
-                  color={stone700}
-                  key={i}
-                />
-              );
-            })}
-
-            <ambientLight intensity={0.4} />
-            <directionalLight position={[10, 10, 5]} intensity={1} />
-            <pointLight position={[0, -10, 5]} intensity={1} />
-          </Canvas>
-
           {/* Invisible click-catcher grid on top of the canvas — trivial
-        (column, row) from each cell's own index, rather than raycasting
-        into the 3D scene and inverting the board's world-position math. */}
+          (column, row) from each cell's own index, rather than raycasting
+          into the 3D scene and inverting the board's world-position math. */}
           <div
             className="absolute inset-1 grid"
             style={{
@@ -406,7 +334,7 @@ export const BoardEditor: React.FC = () => {
               );
             })}
           </div>
-        </div>
+        </ThreeBoard>
       </div>
 
       <div className="flex w-12 flex-col justify-between">

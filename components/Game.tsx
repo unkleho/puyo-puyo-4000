@@ -21,6 +21,10 @@ const LANDING_PUYOS_TIMEOUT = 300;
 
 export const Game = () => {
   const grid = useStore((store) => store.grid);
+  const puyos = useStore((store) => store.puyos);
+  const userPuyoIds = useStore((store) => store.userPuyoIds);
+  const screen = useStore((store) => store.screen);
+  const padding = useStore((store) => store.padding);
   const localGameState = useStore((store) => store.gameState);
   const puyoIdsToClear = useStore((store) => store.puyoIdsToClear);
   const tickSpeed = useStore((store) => store.tickSpeed);
@@ -32,6 +36,22 @@ export const Game = () => {
 
   const setDialogOpen = useStore((store) => store.setDialogOpen);
   const setVolume = useAudioStore((store) => store.setVolume);
+  const setCellSize = useStore((store) => store.setCellSize);
+
+  // Board size based on screen size, surrounding ui and global padding —
+  // this used to live inside ThreeBoard.tsx itself, but that made it
+  // impossible to reuse for a board with different surrounding chrome (e.g.
+  // BoardEditor's own layout); ThreeBoard now just renders at whatever
+  // width/height it's given.
+  const boardPadding = 10;
+  const widthAdjust = padding + 48 + 16 + 16 + 48 + padding;
+  const heightAdjust = padding + 128 + 16 + padding;
+  const baseWidthOnHeight =
+    screen.height - heightAdjust < (screen.width - widthAdjust) * 2;
+  const boardWidth = baseWidthOnHeight
+    ? (screen.height - heightAdjust) / 2
+    : screen.width - widthAdjust;
+  const boardHeight = boardWidth * 2 - boardPadding;
 
   const startGame = useStore((store) => store.startGame);
   const dropPuyos = useStore((store) => store.dropPuyos);
@@ -213,7 +233,15 @@ export const Game = () => {
       </div>
 
       <div className="relative flex h-full justify-center overflow-hidden">
-        <ThreeBoard grid={grid} className="board mt-auto overflow-hidden" />
+        <ThreeBoard
+          grid={grid}
+          puyos={puyos}
+          userPuyoIds={userPuyoIds}
+          width={boardWidth}
+          height={boardHeight}
+          onCellSizeChange={setCellSize}
+          className="board mt-auto overflow-hidden"
+        />
         {/* <Board grid={grid} className="" /> */}
 
         <Alert onClick={() => startGame()} isActive={gameState === 'idle'}>

@@ -1,7 +1,7 @@
 import { Canvas, Dpr } from '@react-three/fiber';
 import React from 'react';
 import * as THREE from 'three';
-import { Grid, useStore } from '../store/store';
+import { Grid, Puyos } from '../store/store';
 import { ENABLE_METABALL_PUYOS, ENABLE_RAYMARCH_PUYOS } from '../shared/config';
 import { getPuyoPosition } from '../shared/grid';
 import { PuyoMetaballs } from './PuyoMetaballs';
@@ -13,7 +13,24 @@ import { PuyoType } from './Puyo';
 
 type Props = {
   grid: Grid;
+  puyos: Puyos;
+  userPuyoIds: [string, string];
+  // Final pixel size, not screen/padding — sizing STRATEGY stays with the
+  // caller (Game.tsx's screen/padding arithmetic, BoardEditor's own
+  // container measurement); this component just renders a board at
+  // whatever size it's told, so neither caller's sizing behaviour changes
+  // by reusing this.
+  width: number;
+  height: number;
   className?: string;
+  // Game.tsx forwards this straight into the store — ThreeQueue reads
+  // cellSize back out from there to match the board's scale. Optional
+  // because a caller with nowhere else that needs to know (e.g.
+  // BoardEditor) can just leave it out.
+  onCellSizeChange?: (cellSize: number) => void;
+  // Lets a caller overlay its own content (e.g. BoardEditor's click-catcher
+  // grid) directly on top of the board's sized/bordered box.
+  children?: React.ReactNode;
 };
 
 const stone600 = 'rgb(87, 83, 78)';
@@ -68,34 +85,22 @@ export const GridLine: React.FC<{
 
 export const ThreeBoard: React.FunctionComponent<Props> = ({
   grid,
+  puyos,
+  userPuyoIds,
+  width,
+  height,
   className,
+  onCellSizeChange,
+  children,
 }) => {
-  const puyos = useStore((store) => store.puyos);
-  const userPuyoIds = useStore((store) => store.userPuyoIds);
-  const setCellSize = useStore((store) => store.setCellSize);
-  const screen = useStore((store) => store.screen);
-  const padding = useStore((store) => store.padding);
-
   const boardPadding = 10;
-
-  // Calculate width/height of board based on screen size, surrounding ui and global padding
-  const widthAdjust = padding + 48 + 16 + 16 + 48 + padding;
-  const heightAdjust = padding + 128 + 16 + padding;
-
-  const baseWidthOnHeight =
-    screen.height - heightAdjust < (screen.width - widthAdjust) * 2;
-
-  const width = baseWidthOnHeight
-    ? (screen.height - heightAdjust) / 2
-    : screen.width - widthAdjust;
-  const height = width * 2 - boardPadding;
 
   // Work out cellSize based on width of board
   const cellSize = (width - boardPadding) / 6;
 
   React.useEffect(() => {
-    setCellSize(cellSize);
-  }, [cellSize, setCellSize]);
+    onCellSizeChange?.(cellSize);
+  }, [cellSize, onCellSizeChange]);
 
   return (
     <div
@@ -214,6 +219,8 @@ export const ThreeBoard: React.FunctionComponent<Props> = ({
         {/*An point light, basically the same as directional. This one points from under */}
         <pointLight position={[0, -10, 5]} intensity={1} />
       </Canvas>
+
+      {children}
     </div>
   );
 };
