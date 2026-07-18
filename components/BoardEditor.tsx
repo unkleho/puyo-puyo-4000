@@ -33,11 +33,6 @@ import { PuyoRaymarch } from './PuyoRaymarch';
 // in the editor for them to move, so they're along for the visual ride
 // rather than wired up to anything here.
 
-type Props = {
-  screen: { width: number; height: number };
-  padding: number;
-};
-
 const COLUMNS = 6;
 const ROWS = 14;
 // Top 2 rows are the same "queued, hidden" rows as the real board — kept
@@ -90,7 +85,7 @@ function getMaxFallRows(previousGrid: Grid, nextGrid: Grid, ids: string[]) {
   }, 0);
 }
 
-export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
+export const BoardEditor: React.FC = () => {
   const setDialogOpen = useStore((store) => store.setDialogOpen);
   const volume = useAudioStore((store) => store.volume);
   const setVolume = useAudioStore((store) => store.setVolume);
@@ -117,16 +112,42 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
     puyos: Puyos;
   } | null>(null);
 
-  // Same board-sizing formula as ThreeBoard.tsx, so the editor's board
-  // matches the real game's board pixel-for-pixel at any screen size.
+  // Sized off the actual available box (measured directly below) rather
+  // than replicating ThreeBoard.tsx's fixed screen/padding arithmetic —
+  // that formula bakes in Game.tsx's exact chrome height, which doesn't
+  // hold once this page's own chrome differs or the viewport gets tight
+  // (this is what caused the board to overflow its container and get
+  // clipped — looking "squished" — on mobile).
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = React.useState({
+    width: 0,
+    height: 0,
+  });
+
+  React.useEffect(() => {
+    const element = containerRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    const observer = new ResizeObserver(([entry]) => {
+      setContainerSize({
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      });
+    });
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
+
   const boardPadding = 10;
-  const widthAdjust = padding + 48 + 16 + 16 + 48 + padding;
-  const heightAdjust = padding + 128 + 16 + padding;
-  const baseWidthOnHeight =
-    screen.height - heightAdjust < (screen.width - widthAdjust) * 2;
+  const baseWidthOnHeight = containerSize.height < containerSize.width * 2;
   const width = baseWidthOnHeight
-    ? (screen.height - heightAdjust) / 2
-    : screen.width - widthAdjust;
+    ? containerSize.height / 2
+    : containerSize.width;
   const height = width * 2 - boardPadding;
   const cellSize = (width - boardPadding) / 6;
 
@@ -301,7 +322,10 @@ export const BoardEditor: React.FC<Props> = ({ screen, padding }) => {
         </div>
       </div>
 
-      <div className="relative flex h-full justify-center overflow-hidden">
+      <div
+        ref={containerRef}
+        className="relative flex h-full justify-center overflow-hidden"
+      >
         <div
           className="board relative mt-auto overflow-hidden border border-stone-700"
           style={{ width, height, backgroundColor: stone950 }}
