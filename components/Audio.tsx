@@ -34,6 +34,16 @@ export const Audio = () => {
   const [notes, setNotes] = useState<
     { name: string; key?: string; velocity?: number }[]
   >([]);
+  // Sample files load async over the network — reactronica's Instrument
+  // calls Tone.Sampler#triggerAttackRelease as soon as `notes` changes,
+  // with no check for whether the sampler has actually finished loading
+  // its buffers yet (see its own "TODO: consider loading status" on
+  // InstrumentProps.onLoad). Triggering before then throws "buffer is not
+  // set or loaded" — easy to hit on a fresh page load if the player hits
+  // Start/moves before the mp3s finish downloading. Hold notes back until
+  // onLoad fires, and drop whatever was queued at that moment rather than
+  // letting a stale sound play late.
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // console.log('grid === prevGrid', grid, prevGrid);
   // console.log(gameState, puyoMoveType, puyoMoveDirection, puyoRotation);
@@ -107,9 +117,10 @@ export const Audio = () => {
       <Track>
         <Instrument
           type="sampler"
-          notes={notes}
-          onLoad={(buffers) => {
-            console.log(buffers);
+          notes={isLoaded ? notes : []}
+          onLoad={() => {
+            setIsLoaded(true);
+            setNotes([]);
           }}
           samples={{
             // C3: './audio/bling5.mp3', // Start

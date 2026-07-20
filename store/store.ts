@@ -134,7 +134,29 @@ export type Store = {
   collapsePuyos: () => void;
   clearPuyos: () => void;
   setDialogOpen: (isDialogOpen: boolean) => void;
+  restoreGame: (snapshot: GameSnapshot) => void;
 };
+
+/**
+ * Everything needed to resume a game from a fresh-piece-spawn checkpoint
+ * (see Game.tsx, which saves one to sessionStorage every time a new piece
+ * is about to drop). Deliberately excludes transient mid-resolve fields
+ * (puyoIdsToClear, chainCount, landingResetCount, lastCollapseMaxFallRows)
+ * — they're always back at their baseline by the time a fresh piece spawns,
+ * so restoreGame just resets them directly instead of persisting them.
+ */
+export type GameSnapshot = Pick<
+  Store,
+  | 'grid'
+  | 'puyos'
+  | 'userPuyoIds'
+  | 'nextPuyoIds'
+  | 'score'
+  | 'level'
+  | 'tickSpeed'
+  | 'totalChainCount'
+  | 'totalChainSets'
+>;
 
 export const useStore = create<Store>((set) => ({
   columns: 6,
@@ -603,6 +625,20 @@ export const useStore = create<Store>((set) => ({
       };
     }),
   setDialogOpen: (isDialogOpen) => set(() => ({ isDialogOpen })),
+  restoreGame: (snapshot) =>
+    set(() => ({
+      ...snapshot,
+      // Always paused on restore, regardless of what was happening when the
+      // snapshot was taken (it's only ever taken right as a fresh piece
+      // spawns, so there's nothing mid-resolve to preserve) — the player
+      // explicitly resumes via the same play/pause control as a normal
+      // pause.
+      gameState: 'paused',
+      puyoIdsToClear: [],
+      chainCount: 0,
+      landingResetCount: 0,
+      lastCollapseMaxFallRows: 0,
+    })),
 }));
 
 /**

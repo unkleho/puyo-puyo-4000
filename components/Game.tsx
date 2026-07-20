@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useKeyPress } from '../hooks/use-key-press';
+import { useSessionStorage } from '../hooks/use-session-storage';
 import { useAudioStore } from '../store/audioStore';
-import { GameState, useStore } from '../store/store';
+import { GameSnapshot, GameState, useStore } from '../store/store';
 import { Alert } from './Alert';
 import { Audio } from './Audio';
 import { ControlButtons } from './ControlButtons';
@@ -27,6 +28,7 @@ export const Game = () => {
   const grid = useStore((store) => store.grid);
   const puyos = useStore((store) => store.puyos);
   const userPuyoIds = useStore((store) => store.userPuyoIds);
+  const nextPuyoIds = useStore((store) => store.nextPuyoIds);
   const screen = useStore((store) => store.screen);
   const padding = useStore((store) => store.padding);
   const localGameState = useStore((store) => store.gameState);
@@ -34,6 +36,7 @@ export const Game = () => {
   const tickSpeed = useStore((store) => store.tickSpeed);
   const score = useStore((store) => store.score);
   const totalChainCount = useStore((store) => store.totalChainCount);
+  const totalChainSets = useStore((store) => store.totalChainSets);
   const level = useStore((store) => store.level);
   const isDialogOpen = useStore((store) => store.isDialogOpen);
   const volume = useAudioStore((store) => store.volume);
@@ -41,6 +44,7 @@ export const Game = () => {
   const setDialogOpen = useStore((store) => store.setDialogOpen);
   const setVolume = useAudioStore((store) => store.setVolume);
   const setCellSize = useStore((store) => store.setCellSize);
+  const restoreGame = useStore((store) => store.restoreGame);
 
   // Board size based on screen size, surrounding ui and global padding —
   // this used to live inside ThreeBoard.tsx itself, but that made it
@@ -90,6 +94,43 @@ export const Game = () => {
   useEffect(() => {
     setIsSSR(false);
   }, []);
+
+  // --------------------------------------------------------------------------
+  // Resume on refresh — a snapshot is saved every time a fresh piece is about
+  // to drop (see the 'drop-puyos' branch below), so a refresh mid-game
+  // restores the actual board/queue right away (via restoreGame, below)
+  // instead of losing the run. Always comes back paused rather than
+  // auto-resuming — the "Resume" alert (rendered whenever localGameState is
+  // 'paused') is what actually unpauses, via the same togglePauseGame a
+  // manual pause uses.
+  // --------------------------------------------------------------------------
+  const [savedGame, setSavedGame, isSavedGameHydrated] =
+    useSessionStorage<GameSnapshot | null>('puyo-puyo-saved-game', null);
+  const hasRestoredRef = useRef(false);
+
+  useEffect(() => {
+    if (hasRestoredRef.current || !isSavedGameHydrated || !savedGame) {
+      return;
+    }
+
+    hasRestoredRef.current = true;
+    restoreGame(savedGame);
+    // Deliberately excludes `savedGame` — this must only ever fire once,
+    // right as hydration completes. Depending on savedGame re-fires this
+    // effect every time a fresh checkpoint is saved during normal play
+    // (setSavedGame in the 'drop-puyos' branch below also changes it), which
+    // force-paused a game that had just been freshly started, immediately
+    // showing the Resume alert instead of actually playing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSavedGameHydrated, restoreGame]);
+
+  // No run to resume once it's over — otherwise the next refresh (even after
+  // starting a brand new game) would restore the dead one.
+  useEffect(() => {
+    if (gameState === 'lose') {
+      setSavedGame(null);
+    }
+  }, [gameState, setSavedGame]);
 
   // --------------------------------------------------------------------------
   // Keyboard controls
@@ -162,6 +203,25 @@ export const Game = () => {
         // actually dropped again. A fresh spawn (from 'start'/'add-puyos')
         // still waits for the first tick as before, keeping that beat.
         movePuyos('down', 'board');
+      } else {
+        // A genuinely fresh piece just spawned — everything else has fully
+        // resolved (no pending clear/collapse, no partial move), making this
+        // the one clean checkpoint to save. Guarded on isSavedGameHydrated so
+        // a save can't race ahead of the restore effect reading the previous
+        // one on mount.
+        if (isSavedGameHydrated) {
+          setSavedGame({
+            grid,
+            puyos,
+            userPuyoIds,
+            nextPuyoIds,
+            score,
+            level,
+            tickSpeed,
+            totalChainCount,
+            totalChainSets,
+          });
+        }
       }
 
       interval = window.setInterval(() => {
@@ -223,6 +283,17 @@ export const Game = () => {
     return () => {
       window.clearInterval(interval);
     };
+    // grid/puyos/userPuyoIds/nextPuyoIds/score/level/totalChainCount/
+    // totalChainSets/isSavedGameHydrated/setSavedGame are read above (for the
+    // checkpoint save) but deliberately left out of this list — this effect
+    // should only re-run on an actual gameState transition (or the other
+    // listed values), not on every single tick's grid change, otherwise the
+    // interval below gets torn down and recreated every tick and the
+    // checkpoint save fires on every tick instead of just on a fresh spawn.
+    // The closure still reads their current values correctly because
+    // they're all updated in the very same store commit as the gameState
+    // transition this effect actually reacts to.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     gameState,
     puyoIdsToClear,
@@ -317,6 +388,17 @@ export const Game = () => {
         <Alert onClick={() => startGame()} isActive={gameState === 'idle'}>
           Start
         </Alert>
+        {/* localGameState, not the dialog-derived gameState above — that
+        one also reads as 'paused' whenever the menu dialog is open, which
+        would otherwise show this behind the dialog too. Covers both a
+        restored (auto-paused) game and an ordinary manual pause — clicking
+        it just unpauses, same as the pause/play icon button. */}
+        <Alert
+          onClick={() => togglePauseGame()}
+          isActive={localGameState === 'paused' && !isDialogOpen}
+        >
+          Resume
+        </Alert>
         <Alert onClick={() => startGame()} isActive={gameState === 'lose'}>
           Play again
         </Alert>
@@ -347,6 +429,7 @@ export const Game = () => {
               name="return-up-back"
               onClick={() => {
                 idleGame();
+                setSavedGame(null);
               }}
               className=""
             ></IconButton>
