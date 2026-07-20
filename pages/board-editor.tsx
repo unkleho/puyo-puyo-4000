@@ -1,9 +1,9 @@
 import type { NextPage } from 'next';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useWindowSize } from '../hooks/use-window-size';
 import { useStore } from '../store/store';
 import { BoardEditor } from '../components/BoardEditor';
-import { InfoDialog } from '../components/InfoDialog';
+import { BoardEditorDialog } from '../components/BoardEditorDialog';
 
 const localWindow = typeof window === 'undefined' ? null : window;
 
@@ -39,18 +39,24 @@ const BoardEditorPage: NextPage = () => {
     }
   }, [windowSize.width, windowSize.height, setScreen]);
 
+  // Passed down from BoardEditor (which owns grid/puyos as local state)
+  // rather than lifting that state up here — lets BoardEditorDialog's Save
+  // button get at the current board without a bigger refactor.
+  const [gridQuery, setGridQuery] = useState('');
+
   return (
     <>
       <main
         className="h-full bg-stone-900 p-4 md:flex md:justify-center md:p-8"
         ref={mainRef}
       >
-        <BoardEditor />
+        <BoardEditor onGridQueryChange={setGridQuery} />
       </main>
 
-      <InfoDialog
+      <BoardEditorDialog
         isActive={isDialogOpen}
         onClose={() => setDialogOpen(false)}
+        currentGridQuery={gridQuery}
       />
     </>
   );

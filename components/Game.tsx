@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useKeyPress } from '../hooks/use-key-press';
-import { useSessionStorage } from '../hooks/use-session-storage';
+import { useSessionStorage } from '../hooks/use-storage';
 import { useAudioStore } from '../store/audioStore';
 import { GameSnapshot, GameState, useStore } from '../store/store';
 import { Alert } from './Alert';

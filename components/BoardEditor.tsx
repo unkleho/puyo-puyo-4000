@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import React from 'react';
 import { ControlButtons } from './ControlButtons';
 import { ThreeBoard } from './ThreeBoard';
@@ -60,6 +61,95 @@ function createEmptyGrid(): Grid {
   return Array.from({ length: ROWS }, () => new Array(COLUMNS).fill(null));
 }
 
+// Single-char codes for the ?grid= query param below.
+const QUERY_COLOUR_CODES: Record<string, PuyoColour> = {
+  p: PuyoColour.PURPLE,
+  y: PuyoColour.YELLOW,
+  r: PuyoColour.RED,
+  b: PuyoColour.BLUE,
+  g: PuyoColour.GREEN,
+};
+
+// Prefills the board from a ?grid= query param, e.g. "----pyrbg--p" — one
+// char per cell, '-' for empty, otherwise a QUERY_COLOUR_CODES key. Read
+// row-major starting from the bottom-left: the first COLUMNS chars are the
+// bottom row (left→right), the next COLUMNS chars are the row above that,
+// and so on upward. Returns null on an unrecognised character rather than
+// silently placing the wrong colour.
+function parseGridQueryParam(
+  value: string,
+): { grid: Grid; puyos: Puyos } | null {
+  const chars = value.toLowerCase().split('');
+
+  if (chars.some((char) => char !== '-' && !QUERY_COLOUR_CODES[char])) {
+    return null;
+  }
+
+  const grid = createEmptyGrid();
+  const puyos: Puyos = {};
+  let nextId = 0;
+
+  chars.forEach((char, index) => {
+    if (char === '-') {
+      return;
+    }
+
+    const rowFromBottom = Math.floor(index / COLUMNS);
+    const column = index % COLUMNS;
+    const row = ROWS - 1 - rowFromBottom;
+
+    // String describes more rows than the board actually has (14) — ignore
+    // the overflow rather than writing past the top.
+    if (row < 0) {
+      return;
+    }
+
+    const id = `query-${nextId}`;
+    nextId += 1;
+    grid[row][column] = id;
+    puyos[id] = { colour: QUERY_COLOUR_CODES[char] };
+  });
+
+  return { grid, puyos };
+}
+
+// Inverse of parseGridQueryParam — same row-major-from-bottom-left reading
+// order. Trims fully-empty rows off the top (rather than always emitting
+// all ROWS rows) so a mostly-empty board doesn't produce a huge string of
+// trailing dashes.
+function serializeGridToQueryParam(grid: Grid, puyos: Puyos): string {
+  const colourCodesByColour = Object.entries(QUERY_COLOUR_CODES).reduce(
+    (map, [char, colour]) => ({ ...map, [colour]: char }),
+    {} as Record<PuyoColour, string>,
+  );
+
+  let topmostRowWithPuyo = -1;
+
+  for (let row = 0; row < ROWS; row += 1) {
+    if (grid[row].some((cellId) => cellId !== null)) {
+      topmostRowWithPuyo = row;
+      break;
+    }
+  }
+
+  if (topmostRowWithPuyo === -1) {
+    return '';
+  }
+
+  const chars: string[] = [];
+
+  for (let row = ROWS - 1; row >= topmostRowWithPuyo; row -= 1) {
+    for (let column = 0; column < COLUMNS; column += 1) {
+      const cellId = grid[row][column];
+      const colour = cellId ? puyos[cellId]?.colour : undefined;
+
+      chars.push(colour ? colourCodesByColour[colour] : '-');
+    }
+  }
+
+  return chars.join('');
+}
+
 function delay(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
@@ -74,7 +164,16 @@ function delay(ms: number) {
 // ones — the real game (Game.tsx/store.ts) uses the same helper for its own
 // chain collapses.
 
-export const BoardEditor: React.FC = () => {
+type Props = {
+  /** Fired with the query-param encoding (see serializeGridToQueryParam)
+   * of the current grid whenever it changes — lets a sibling (e.g.
+   * BoardEditorDialog's "Save" button) get at the current board without
+   * lifting grid/puyos state itself up to the page. */
+  onGridQueryChange?: (value: string) => void;
+};
+
+export const BoardEditor: React.FC<Props> = ({ onGridQueryChange }) => {
+  const router = useRouter();
   const setDialogOpen = useStore((store) => store.setDialogOpen);
   const volume = useAudioStore((store) => store.volume);
   const setVolume = useAudioStore((store) => store.setVolume);
@@ -93,6 +192,50 @@ export const BoardEditor: React.FC = () => {
   const nextIdRef = React.useRef(0);
   const padding = useStore((store) => store.padding);
   const screen = useStore((store) => store.screen);
+
+  // Prefill from ?grid=... — re-applies whenever the query value actually
+  // changes (e.g. clicking a different saved board's link from
+  // BoardEditorDialog while already on this page), but not on every
+  // render/edit, since editing the board never itself touches the URL.
+  const lastAppliedQueryGridRef = React.useRef<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const queryGrid = router.query.grid;
+    const value = Array.isArray(queryGrid) ? queryGrid[0] : queryGrid;
+
+    if (value === lastAppliedQueryGridRef.current) {
+      return;
+    }
+
+    lastAppliedQueryGridRef.current = value;
+
+    if (!value) {
+      return;
+    }
+
+    const parsed = parseGridQueryParam(value);
+
+    if (!parsed) {
+      console.warn(
+        `Ignoring ?grid= query param — expected only "-" or one of ${Object.keys(
+          QUERY_COLOUR_CODES,
+        ).join(', ')}, got "${value}"`,
+      );
+
+      return;
+    }
+
+    setGrid(parsed.grid);
+    setPuyos(parsed.puyos);
+  }, [router.isReady, router.query.grid]);
+
+  React.useEffect(() => {
+    onGridQueryChange?.(serializeGridToQueryParam(grid, puyos));
+  }, [grid, puyos, onGridQueryChange]);
 
   // The board you had right before the last Play press — lets Reset put you
   // back at the start of a chain instead of wiping it, so you can watch the
@@ -120,6 +263,26 @@ export const BoardEditor: React.FC = () => {
     : screen.width - widthAdjust;
   const boardHeight = boardWidth * 2 - boardPadding;
 
+  // Pushes a grid straight to the URL rather than local state — the
+  // query-watching effect above (lastAppliedQueryGridRef) is what actually
+  // calls setGrid/setPuyos once router.query.grid reflects it. Used by
+  // handleCellClick so an edit is driven entirely by the query param
+  // rather than a separate, parallel piece of state.
+  const updateGridQuery = (nextGrid: Grid, nextPuyos: Puyos) => {
+    const value = serializeGridToQueryParam(nextGrid, nextPuyos);
+    const nextQuery = { ...router.query };
+
+    if (value) {
+      nextQuery.grid = value;
+    } else {
+      delete nextQuery.grid;
+    }
+
+    router.replace({ pathname: router.pathname, query: nextQuery }, undefined, {
+      shallow: true,
+    });
+  };
+
   const handleCellClick = (column: number, row: number) => {
     if (isPlaying) {
       return;
@@ -142,8 +305,7 @@ export const BoardEditor: React.FC = () => {
       newPuyos[id] = { colour: tool };
     }
 
-    setGrid(newGrid);
-    setPuyos(newPuyos);
+    updateGridQuery(newGrid, newPuyos);
   };
 
   const handleReset = () => {
